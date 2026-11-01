@@ -1,0 +1,77 @@
+/* ============================================================
+   DESIGN TOKENS & VARIABEL CSS - NEO-BRUTALISM
+   Lihat panduan lengkap di: docs/desgin.md
+   ============================================================ */
+
+:root {
+  /* --- PALET WARNA DASAR (CANVAS & BASE) --- */
+  --bg-canvas: #FBF8F1;          /* Krem hangat / Warm off-white khas Neo-Brutalism */
+  --bg-card: #FFFFFF;            /* Putih murni untuk kartu & kontainer */
+  --bg-muted: #F2EDE2;           /* Krem abu untuk field input disabled / subtle container */
+  --border-color: #121212;       /* Hitam pekat solid untuk semua border */
+  --text-main: #121212;          /* Teks utama (high contrast) */
+  --text-muted: #666666;         /* Teks sekunder / caption */
+
+  /* --- BRAND & ACCENT COLORS (POP VIBRANT) --- */
+  --accent-yellow: #FFE600;      /* Primary CTA / Highlight / Badge Promo */
+  --accent-blue: #3B82F6;        /* Akun Premium / Info / Link */
+  --accent-green: #00E599;       /* Pulsa & Kuota / Status Sukses / Instant Buy */
+  --accent-coral: #FF5353;       /* Top-Up Game / Diskon / Hot Deals */
+  --accent-purple: #A78BFA;      /* Voucher & Gift Card */
+  --accent-pink: #FF70A6;        /* Flash Sale / Stiker Promo */
+  --accent-orange: #FF9F1C;      /* Tagihan & Pajak PPOB */
+
+  /* --- SEMANTIC COLORS --- */
+  --state-success: #10B981;      /* Status Transaksi: Berhasil */
+  --state-warning: #F59E0B;      /* Status Transaksi: Menunggu Pembayaran */
+  --state-danger: #EF4444;       /* Status Transaksi: Gagal / Expired */
+  --state-info: #0284C7;         /* Status Transaksi: Sedang Diproses */
+
+  /* --- BORDERS & SHADOWS (NEO-BRUTALISM CORE) --- */
+  --border-width: 3px;
+  --border-style: solid var(--border-color);
+  --border-radius-sm: 6px;
+  --border-radius-md: 10px;
+  --border-radius-lg: 16px;
+  --border-radius-pill: 9999px;
+
+  /* Hard Shadows (Tanpa Blur) */
+  --shadow-sm: 2px 2px 0px var(--border-color);
+  --shadow-md: 4px 4px 0px var(--border-color);
+  --shadow-lg: 6px 6px 0px var(--border-color);
+  --shadow-hover: 6px 6px 0px var(--border-color);
+  --shadow-active: 0px 0px 0px var(--border-color);
+
+  /* --- TYPOGRAPHY SCALE --- */
+  --font-family-heading: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-family-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+  /* --- TRANSITIONS --- */
+  --transition-fast: 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reset Dasar & Blueprint Grid Canvas */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-canvas);
+  background-image: 
+    linear-gradient(to right, rgba(18, 18, 18, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(18, 18, 18, 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+  color: var(--text-main);
+  font-family: var(--font-family-body);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
