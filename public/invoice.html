@@ -240,5 +240,24 @@
     </div>
     <div class="container footer-note">© 2026 Mari Shop | Platform Top Up Game &amp; Digital Goods Tercepat dan Terpercaya di Indonesia.</div>
   </footer>
+  <!-- DYNAMIC MOBILE BOTTOM NAVIGATION -->
+  <nav class="mobile-bottom-nav" aria-label="Navigasi Bawah">
+    <a href="index.html" class="mobile-nav-item">
+      <img class="ico" src="/assets/img/icons/home.svg" alt="" aria-hidden="true">
+      <span>Beranda</span>
+    </a>
+    <a href="index.html#katalog" class="mobile-nav-item">
+      <img class="ico" src="/assets/img/icons/bag.svg" alt="" aria-hidden="true">
+      <span>Katalog</span>
+    </a>
+    <a href="check-order.html" class="mobile-nav-item">
+      <img class="ico" src="/assets/img/icons/receipt.svg" alt="" aria-hidden="true">
+      <span>Pesanan</span>
+    </a>
+    <button type="button" class="mobile-nav-item" onclick="if(window.Auth && Auth.isLoggedIn()){ window.location.href='check-order.html'; } else { window.openAuthModal('login'); }">
+      <img class="ico" src="/assets/img/icons/key.svg" alt="" aria-hidden="true">
+      <span>Akun</span>
+    </button>
+  </nav>
 </body>
 </html>

@@ -152,6 +152,9 @@ function authNavComponent() {
     loading: false,
 
     init() {
+      window.addEventListener('open-auth-modal', (e) => {
+        this.openLoginModal(e.detail?.tab || 'login');
+      });
       window.addEventListener('auth-changed', (e) => {
         this.user = e.detail;
       });
@@ -222,3 +225,8 @@ function authNavComponent() {
     }
   };
 }
+
+// Global helper untuk tombol navigasi mobile / tombol lain
+window.openAuthModal = function(tab) {
+  window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { tab: tab || 'login' } }));
+};
