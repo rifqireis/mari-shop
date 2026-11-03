@@ -134,8 +134,12 @@ textarea.brutal-input{font-size:15px}
 .site-footer{background:#FFF;padding-top:0;border-top:var(--border-width) solid var(--border-color)}
 .site-footer::before{content:"";display:block;height:14px;background:var(--stripe);border-bottom:var(--border-width) solid var(--border-color);margin-bottom:40px}
 .footer-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.2fr;gap:36px;align-items:start}
+.footer-brand-box{display:flex;flex-direction:column}
+.footer-links-row{display:contents}
+.footer-pay-box{display:flex;flex-direction:column}
 .footer-title{font-family:var(--font-family-heading);font-size:28px;font-weight:800;color:var(--blue-strong);letter-spacing:0.5px}
 .footer-text{font-size:14px;line-height:1.55;color:var(--text-muted);margin-top:8px}
+.footer-trust-row{margin-top:14px;display:flex;flex-direction:column;gap:8px}
 .footer-h{font-family:var(--font-family-heading);font-size:15px;font-weight:800;color:var(--text-main);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px}
 .footer-links{display:flex;flex-direction:column;gap:8px}
 .footer-links a{color:var(--text-muted);text-decoration:none;font-size:14px;font-weight:600;transition:all var(--transition-fast)}
@@ -377,9 +381,10 @@ nav[aria-label="Breadcrumb"] a{color:var(--blue-strong);text-decoration:underlin
 
 
 
+
 /* ============================================================
    REFINED COMPACT MOBILE SYSTEM (<= 768px)
-   Dimuat di akhir agar menimpa seluruh styling desktop dengan presisi
+   Dimuat di paling akhir untuk mobile yang proporsional, rapi, dan seimbang
    ============================================================ */
 @media (max-width: 768px) {
   :root {
@@ -394,7 +399,7 @@ nav[aria-label="Breadcrumb"] a{color:var(--blue-strong);text-decoration:underlin
     font-size: 14px;
     line-height: 1.45;
     overflow-x: clip;
-    padding-bottom: 68px;
+    padding-bottom: 76px;
   }
   .container { padding: 0 10px; }
   .page-main { padding: 10px 10px 8px; }
@@ -435,130 +440,145 @@ nav[aria-label="Breadcrumb"] a{color:var(--blue-strong);text-decoration:underlin
     background-position: 10px center;
   }
 
-  /* Compact Hero Banner */
+  /* Sleek & Focused Mobile Hero Banner */
   .hero-banner {
-    min-height: 0;
-    padding: 16px 12px;
-    border-radius: 16px;
-    border-width: 2px;
-    gap: 10px;
-    grid-template-columns: 1fr;
-    box-shadow: var(--shadow-md);
+    min-height: 0 !important;
+    padding: 16px 14px !important;
+    border-radius: 16px !important;
+    border-width: 2px !important;
+    gap: 10px !important;
+    grid-template-columns: 1fr !important;
+    box-shadow: var(--shadow-md) !important;
   }
-  .hero-badges { display: flex; flex-wrap: wrap; gap: 5px; }
-  .hero-badges .badge { font-size: 11px; padding: 2px 8px; border-width: 1.5px; border-radius: 6px; gap: 4px; }
-  .hero-badges .badge .ico { width: 12px; height: 12px; }
-  .hero-title { font-size: 21px; line-height: 1.15; margin: 6px 0 4px; }
-  .hero-title mark { font-size: 21px; padding: 0 6px; border-radius: 8px; border-width: 1.5px; }
-  .hero-text { font-size: 12.5px; line-height: 1.35; margin: 0 0 10px; font-weight: 600; }
-  .hero-banner .btn-lg { font-size: 13px; padding: 8px 16px; border-width: 2px; border-radius: 10px; }
-  .hero-sticker.s1 { width: 50px; height: 50px; font-size: 9px; line-height: 1.1; top: 8px; right: 8px; border-width: 1.5px; }
-
-  /* Bento Stats Strip (Sleek 4-Pill Row) */
+  .hero-sticker.s1 {
+    width: 46px !important;
+    height: 46px !important;
+    font-size: 8.5px !important;
+    line-height: 1.1 !important;
+    top: 10px !important;
+    right: 10px !important;
+    border-width: 1.5px !important;
+  }
+  .hero-badges {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 5px !important;
+    margin-bottom: 2px !important;
+  }
+  .hero-badges .badge {
+    font-size: 11px !important;
+    padding: 2.5px 8px !important;
+    border-width: 1.5px !important;
+    border-radius: 6px !important;
+    gap: 4px !important;
+  }
+  .hero-badges .badge .ico { width: 12px !important; height: 12px !important; }
+  .hero-title {
+    font-size: 21px !important;
+    line-height: 1.18 !important;
+    margin: 6px 0 4px !important;
+  }
+  .hero-title mark {
+    font-size: 21px !important;
+    padding: 1px 6px !important;
+    border-radius: 6px !important;
+    border-width: 1.5px !important;
+  }
+  .hero-text {
+    font-size: 12.5px !important;
+    line-height: 1.4 !important;
+    margin: 0 0 12px !important;
+    font-weight: 600 !important;
+    color: var(--text-main) !important;
+  }
+  /* Tombol CTA Hero yang Jelas, Nyaman, dan Mantap di Jari */
+  .hero-banner .btn-lg {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    font-size: 14.5px !important;
+    font-weight: 800 !important;
+    padding: 11px 18px !important;
+    border-width: 2px !important;
+    border-radius: 12px !important;
+    box-shadow: 2.5px 2.5px 0 var(--border-color) !important;
+  }
+  /* HIDE bento-stats di mobile karena redundant dengan .perks dan membuat tombol kecil */
   .bento-stats {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 5px;
-    margin-top: 8px;
+    display: none !important;
   }
-  .stat-box {
-    min-width: 0;
-    padding: 6px 2px;
-    border-radius: 10px;
-    border-width: 1.5px;
-    box-shadow: 1.5px 1.5px 0 var(--border-color);
-    gap: 1px;
-    align-items: center;
-    text-align: center;
-    overflow: hidden;
-  }
-  .stat-val { font-size: 12px; font-weight: 800; gap: 2px; justify-content: center; white-space: nowrap; }
-  .stat-val .ico { width: 14px; height: 14px; }
-  .stat-lbl { font-size: 8px; font-weight: 700; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; opacity: 0.9; }
-
-  /* Order Page Compact in Mobile */
-  .product-hero { gap: 10px; }
-  .product-hero img { width: 68px; height: 68px; border-radius: 10px; border-width: 1.5px; }
-  .product-hero h1 { font-size: 20px; }
-  .guide-box { font-size: 11.5px; padding: 8px 12px; border-radius: 8px; }
-  .step-title { font-size: 17px; }
-  .step-num { width: 32px; height: 32px; font-size: 14px; border-width: 2px; }
-  .variant-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
-  .variant-card { padding: 9px !important; border-radius: 10px !important; border-width: 1.5px !important; box-shadow: 2px 2px 0 var(--border-color) !important; }
-  .variant-name { font-size: 12.5px !important; }
-  .variant-price { font-size: 13.5px !important; }
-  .variant-old { font-size: 10.5px !important; }
-  .variant-stock { font-size: 10px !important; }
-  .payment-group-header { font-size: 13px !important; padding: 10px 12px !important; }
-  .payment-item { font-size: 13px !important; padding: 10px 12px !important; border-width: 1.5px !important; }
-  .brutal-input { font-size: 14px !important; padding: 10px 12px !important; border-width: 1.5px !important; border-radius: 10px !important; }
 
   /* Compact Perks (2x2 Grid) */
-  .perks { grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
-  .perk {
-    padding: 7px 9px;
-    border-radius: 10px;
-    border-width: 1.5px;
-    box-shadow: 1.5px 1.5px 0 var(--border-color);
-    font-size: 12px;
-    gap: 7px;
-    line-height: 1.2;
+  .perks {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    margin-top: 10px !important;
   }
-  .perk .ico-lg { width: 22px; height: 22px; }
-  .perk small { font-size: 10px; margin-top: 1px; }
+  .perk {
+    padding: 8px 10px !important;
+    border-radius: 12px !important;
+    border-width: 1.5px !important;
+    box-shadow: 1.5px 1.5px 0 var(--border-color) !important;
+    font-size: 12px !important;
+    gap: 7px !important;
+    line-height: 1.2 !important;
+  }
+  .perk .ico-lg { width: 22px !important; height: 22px !important; }
+  .perk small { font-size: 9.5px !important; margin-top: 1px !important; }
 
   /* Katalog Header & Tabs */
-  .catalog-head { margin-top: 18px; }
+  .catalog-head { margin-top: 18px !important; }
   .catalog-head .section-head {
-    padding: 10px 12px;
-    border-radius: 12px;
-    border-width: 1.5px;
-    box-shadow: 2px 2px 0 var(--border-color);
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    margin-bottom: 6px;
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+    border-width: 1.5px !important;
+    box-shadow: 2px 2px 0 var(--border-color) !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    margin-bottom: 6px !important;
   }
-  .catalog-head .section-title { font-size: 17px; }
-  .catalog-head .section-sub { font-size: 11px; }
+  .catalog-head .section-title { font-size: 17px !important; }
+  .catalog-head .section-sub { font-size: 11px !important; }
   .tab-scroll {
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding: 2px 0 4px;
-    margin: 0 -2px;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
-    scrollbar-width: none;
+    display: flex !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    padding: 2px 0 4px !important;
+    margin: 0 -2px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scroll-snap-type: x proximity !important;
+    scrollbar-width: none !important;
   }
-  .tab-scroll::-webkit-scrollbar { display: none; }
+  .tab-scroll::-webkit-scrollbar { display: none !important; }
   .category-tab {
-    padding: 5px 12px;
-    font-size: 12px;
-    border-width: 1.5px;
-    border-radius: 999px;
-    box-shadow: 1.5px 1.5px 0 var(--border-color);
-    flex: none;
-    scroll-snap-align: start;
+    padding: 5px 12px !important;
+    font-size: 12px !important;
+    border-width: 1.5px !important;
+    border-radius: 999px !important;
+    box-shadow: 1.5px 1.5px 0 var(--border-color) !important;
+    flex: none !important;
+    scroll-snap-align: start !important;
   }
 
-  /* Carousel per Kategori di Mobile */
-  .cat-section { margin-top: 20px; scroll-margin-top: 70px; }
-  .cat-section:first-of-type { margin-top: 10px; }
-  .cat-divider { gap: 8px; margin-bottom: 6px; }
+  /* Carousel per Kategori di Mobile (2 Kartu + Peek Preview) */
+  .cat-section { margin-top: 20px !important; scroll-margin-top: 70px !important; }
+  .cat-section:first-of-type { margin-top: 10px !important; }
+  .cat-divider { gap: 8px !important; margin-bottom: 6px !important; }
   .cat-chip {
-    padding: 4px 10px 4px 6px;
-    border-radius: 10px;
-    border-width: 1.5px;
-    box-shadow: 2px 2px 0 var(--border-color);
-    gap: 6px;
+    padding: 4px 10px 4px 6px !important;
+    border-radius: 10px !important;
+    border-width: 1.5px !important;
+    box-shadow: 2px 2px 0 var(--border-color) !important;
+    gap: 6px !important;
   }
-  .cat-chip h2 { font-size: 14px; }
-  .cat-chip .count { font-size: 10px; padding: 1px 6px; border-width: 1.5px; }
-  .cat-chip .ico-lg { width: 20px; height: 20px; }
-  .cat-line { height: 8px; }
+  .cat-chip h2 { font-size: 14px !important; }
+  .cat-chip .count { font-size: 10px !important; padding: 1px 6px !important; border-width: 1.5px !important; }
+  .cat-chip .ico-lg { width: 20px !important; height: 20px !important; }
+  .cat-line { height: 8px !important; }
   .carousel-nav { display: none !important; }
-  .carousel-wrap { margin-top: 4px; margin-bottom: 12px; }
+  .carousel-wrap { margin-top: 4px !important; margin-bottom: 12px !important; }
   .carousel-track {
     gap: 10px !important;
     padding: 4px 2px 10px 2px !important;
@@ -575,7 +595,7 @@ nav[aria-label="Breadcrumb"] a{color:var(--blue-strong);text-decoration:underlin
     border-radius: 12px !important;
     border-width: 1.5px !important;
     box-shadow: 2px 2px 0 var(--border-color) !important;
-    scroll-snap-align: start;
+    scroll-snap-align: start !important;
   }
   .carousel-card .sticker {
     font-size: 8.5px !important;
@@ -624,28 +644,148 @@ nav[aria-label="Breadcrumb"] a{color:var(--blue-strong);text-decoration:underlin
   .product-foot .btn .ico { width: 11px !important; height: 11px !important; }
 
   /* Info & Bantuan Compact */
-  #how-title, #faq-title { font-size: 16px; padding: 5px 14px; border-radius: 10px; border-width: 1.5px; margin-bottom: 12px; }
-  .how-grid { gap: 10px; }
-  .how-card { padding: 14px; border-radius: 12px; border-width: 1.5px; }
-  .how-card .how-num { font-size: 28px; }
-  .how-card .how-ico { width: 32px; height: 32px; margin-bottom: 8px; }
-  .how-card .step-title { font-size: 15px; }
-  .how-card .section-sub { font-size: 12px; }
-  .faq details summary { font-size: 13.5px; padding: 10px 14px; border-width: 1.5px; }
-  .faq details p { font-size: 12.5px; padding: 10px 14px; }
-  .brutal-card { padding: 16px; border-radius: 14px; border-width: 1.5px; }
-  .countdown { font-size: 32px; padding: 4px 12px; }
-  .qr-frame { width: 200px; height: 200px; }
-  
-  /* Footer Compact */
-  .site-footer { padding-bottom: 24px; }
-  .footer-grid { grid-template-columns: 1fr; gap: 18px; }
-  .footer-title { font-size: 22px; }
-  .footer-text { font-size: 12.5px; }
-  .footer-h { font-size: 13px; margin-bottom: 8px; }
-  .footer-links a { font-size: 12.5px; }
-  .footer-pay .badge { font-size: 11px; padding: 4px 8px; }
-  .footer-note { font-size: 11px; padding: 16px 0; margin-top: 20px; }
+  #how-title, #faq-title { font-size: 16px !important; padding: 5px 14px !important; border-radius: 10px !important; border-width: 1.5px !important; margin-bottom: 12px !important; }
+  .how-grid { gap: 10px !important; }
+  .how-card { padding: 14px !important; border-radius: 12px !important; border-width: 1.5px !important; }
+  .how-card .how-num { font-size: 28px !important; }
+  .how-card .how-ico { width: 32px !important; height: 32px !important; margin-bottom: 8px !important; }
+  .how-card .step-title { font-size: 15px !important; }
+  .how-card .section-sub { font-size: 12px !important; }
+  .faq details summary { font-size: 13.5px !important; padding: 10px 14px !important; border-width: 1.5px !important; }
+  .faq details p { font-size: 12.5px !important; padding: 10px 14px !important; }
+  .brutal-card { padding: 16px !important; border-radius: 14px !important; border-width: 1.5px !important; }
+  .countdown { font-size: 32px !important; padding: 4px 12px !important; }
+  .qr-frame { width: 200px !important; height: 200px !important; }
+
+  /* Order Page Compact in Mobile */
+  .product-hero { gap: 10px !important; }
+  .product-hero img { width: 68px !important; height: 68px !important; border-radius: 10px !important; border-width: 1.5px !important; }
+  .product-hero h1 { font-size: 20px !important; }
+  .guide-box { font-size: 11.5px !important; padding: 8px 12px !important; border-radius: 8px !important; }
+  .step-title { font-size: 17px !important; }
+  .step-num { width: 32px !important; height: 32px !important; font-size: 14px !important; border-width: 2px !important; }
+  .variant-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+  .variant-card { padding: 9px !important; border-radius: 10px !important; border-width: 1.5px !important; box-shadow: 2px 2px 0 var(--border-color) !important; }
+  .variant-name { font-size: 12.5px !important; }
+  .variant-price { font-size: 13.5px !important; }
+  .variant-old { font-size: 10.5px !important; }
+  .variant-stock { font-size: 10px !important; }
+  .payment-group-header { font-size: 13px !important; padding: 10px 12px !important; }
+  .payment-item { font-size: 13px !important; padding: 10px 12px !important; border-width: 1.5px !important; }
+  .brutal-input { font-size: 14px !important; padding: 10px 12px !important; border-width: 1.5px !important; border-radius: 10px !important; }
+
+  /* ============================================================
+     FOOTER RAPI, KOMPAK & SEIMBANG DI MOBILE
+     ============================================================ */
+  .site-footer {
+    padding-top: 0 !important;
+    padding-bottom: 84px !important;
+    background: #FFF !important;
+  }
+  .site-footer::before {
+    height: 10px !important;
+    margin-bottom: 22px !important;
+  }
+  .footer-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+  .footer-brand-box {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+  .footer-title {
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    color: var(--blue-strong) !important;
+  }
+  .footer-text {
+    font-size: 12.5px !important;
+    line-height: 1.45 !important;
+    color: var(--text-muted) !important;
+  }
+  .footer-trust-row {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    margin-top: 6px !important;
+  }
+  .footer-trust-badge {
+    flex: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    font-size: 11px !important;
+    padding: 6px 8px !important;
+    border-radius: 8px !important;
+    border-width: 1.5px !important;
+    box-shadow: 1.5px 1.5px 0 var(--border-color) !important;
+    white-space: nowrap !important;
+  }
+  .footer-trust-badge .ico { width: 14px !important; height: 14px !important; }
+
+  /* 2-Kolom Rapi untuk Layanan & Bantuan */
+  .footer-links-row {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+    padding: 12px 14px !important;
+    background: var(--bg-muted) !important;
+    border: 1.5px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    box-shadow: 2px 2px 0 var(--border-color) !important;
+  }
+  .footer-h {
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    color: var(--blue-strong) !important;
+    margin-bottom: 6px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+  }
+  .footer-links {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+  .footer-links a {
+    font-size: 11.5px !important;
+    line-height: 1.35 !important;
+    color: var(--text-main) !important;
+    font-weight: 700 !important;
+  }
+
+  /* Kotak Metode Pembayaran Rapi */
+  .footer-pay-box {
+    padding: 12px 14px !important;
+    background: #FFF !important;
+    border: 1.5px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    box-shadow: 2px 2px 0 var(--border-color) !important;
+  }
+  .footer-pay {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    margin-top: 4px !important;
+  }
+  .footer-pay .badge {
+    font-size: 10.5px !important;
+    padding: 3px 8px !important;
+    border-width: 1.5px !important;
+  }
+  .footer-note {
+    font-size: 11px !important;
+    padding: 12px 0 0 !important;
+    margin-top: 10px !important;
+    border-top: 1px dashed #D0D7DE !important;
+    text-align: center !important;
+    line-height: 1.4 !important;
+    color: var(--text-muted) !important;
+  }
 }
 
 /* ---------- DYNAMIC MOBILE BOTTOM NAVIGATION BAR ---------- */
