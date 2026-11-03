@@ -52,10 +52,10 @@ textarea.brutal-input{font-size:15px}
 .sticker{font-size:14px;padding:5px 12px}
 
 /* ---------- NAVBAR ---------- */
-.navbar{background:#FFFDF8;border:var(--border-width) solid var(--border-color);border-radius:var(--border-radius-lg);box-shadow:var(--shadow-md);max-width:1360px;margin:14px auto 0;position:sticky;top:12px;z-index:100;overflow:hidden}
-.navbar .container{max-width:100%}
+.navbar{background:#FFF;border-bottom:var(--border-width) solid var(--border-color);border-top:none;border-left:none;border-right:none;border-radius:0;box-shadow:none;max-width:none;margin:0;position:sticky;top:0;left:0;right:0;width:100%;z-index:100}
+.navbar .container{max-width:1360px}
 .navbar::after{content:"";display:block;height:8px;background:var(--stripe);border-top:var(--border-width) solid var(--border-color)}
-.nav-wrapper{gap:20px;padding:12px 24px}
+.nav-wrapper{gap:22px;padding-top:14px;padding-bottom:14px}
 .logo{font-size:32px;gap:10px}
 .logo-mark{background:var(--blue-strong);color:#fff;padding:3px 12px;border-radius:10px;border-width:3px;box-shadow:var(--shadow-sm)}
 .nav-search{flex:1;max-width:760px;position:relative}
@@ -138,7 +138,7 @@ textarea.brutal-input{font-size:15px}
 /* ---------- RESPONSIVE ---------- */
 @media (max-width:1023px){.perks{grid-template-columns:repeat(2,1fr)}.hero-banner{grid-template-columns:1fr;padding:44px 32px}}
 @media (max-width:768px){
-  body{font-size:16px}.container{padding:0 14px}.page-main{padding:24px 14px 8px}.navbar{margin:8px 12px 0;border-radius:16px;top:8px}.nav-wrapper{padding:10px 14px}.hero-title mark{white-space:normal}
+  body{font-size:16px}.container{padding:0 14px}.page-main{padding:24px 14px 8px}.hero-title mark{white-space:normal}
   .nav-search{order:3;flex-basis:100%;max-width:none}
   .nav-search .brutal-input{font-size:18px;padding:16px 18px 16px 58px}
   .logo{font-size:26px}
