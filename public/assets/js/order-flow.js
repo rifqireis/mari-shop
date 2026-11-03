@@ -19,6 +19,10 @@ function orderFlow() {
     errors: {}, submitting: false, submitError: '',
 
     async init() {
+      const u = typeof Auth !== 'undefined' ? Auth.getUser() : null;
+      if (u && u.email && !this.form.contact) {
+        this.form.contact = u.email;
+      }
       const slug = getParam('product');
       if (!slug) { this.notFound = true; this.loading = false; return; }
       try {
@@ -29,7 +33,7 @@ function orderFlow() {
         this.product = p.data;
         this.variants = p.data.variants || [];
         this.payments = pm.data;
-        document.title = 'Top Up ' + this.product.name + ' — Mari Shop';
+        document.title = 'Top Up ' + this.product.name + ' | Mari Shop';
       } catch (e) {
         if (e.status === 404) this.notFound = true; else this.error = e.message;
       } finally {

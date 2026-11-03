@@ -7,7 +7,13 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js"
   },
-  "keywords": ["ecommerce", "topup", "neo-brutalism", "mysql", "express"],
+  "keywords": [
+    "ecommerce",
+    "topup",
+    "neo-brutalism",
+    "mysql",
+    "express"
+  ],
   "author": "Kelompok A1",
   "license": "ISC",
   "type": "commonjs",
@@ -16,7 +22,8 @@
     "cors": "^2.8.6",
     "dotenv": "^18.0.9",
     "express": "^5.3.0",
-    "mysql2": "^3.24.6"
+    "mysql2": "^3.24.6",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

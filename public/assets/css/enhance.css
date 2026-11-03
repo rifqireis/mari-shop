@@ -1,5 +1,5 @@
 /* ============================================================
-   ENHANCE v2 — UI lebih besar, palet biru-kuning-putih, pattern, banner
+   ENHANCE v2 | UI lebih besar, palet biru-kuning-putih, pattern, banner
    Dimuat paling akhir di semua halaman (menimpa token & ukuran lama)
    ============================================================ */
 :root{
@@ -159,4 +159,229 @@ textarea.brutal-input{font-size:15px}
   .hero-sticker.s1{width:76px;height:76px;font-size:12px;top:10px;right:10px}
   .btn-lg{font-size:18px;padding:16px 26px}
   html,body{overflow-x:hidden}
+}
+
+
+/* ---------- HORIZONTAL CAROUSEL (KATALOG BERDERET) ---------- */
+.carousel-wrap { position: relative; margin-top: 10px; margin-bottom: 24px; }
+.carousel-track {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  padding: 12px 8px 24px 8px;
+  margin: -6px -8px 0 -8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) rgba(11,42,102,0.08);
+}
+.carousel-track::-webkit-scrollbar { height: 8px; }
+.carousel-track::-webkit-scrollbar-track { background: rgba(11,42,102,0.08); border-radius: 999px; }
+.carousel-track::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 999px; }
+.carousel-card {
+  flex: 0 0 280px;
+  scroll-snap-align: start;
+}
+.cat-divider { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+.carousel-nav { display: flex; align-items: center; gap: 8px; flex: none; }
+.btn-carousel {
+  font-family: var(--font-family-heading);
+  font-size: 24px;
+  line-height: 1;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: #FFF;
+  border: var(--border-width) solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+.btn-carousel:hover {
+  background: var(--accent-yellow);
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-md);
+}
+.btn-carousel:active {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-active);
+}
+
+/* ---------- AUTH NAVBAR & DROPDOWN ---------- */
+.user-menu-wrap { position: relative; }
+.user-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  padding: 8px 16px;
+  background: var(--accent-yellow);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius-pill);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  font-weight: 700;
+  transition: all var(--transition-fast);
+}
+.user-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-md);
+}
+.user-avatar-badge {
+  background: var(--blue-strong);
+  color: #FFF;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 240px;
+  background: #FFF;
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 8px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.user-dropdown-head {
+  padding: 10px 12px;
+  background: var(--bg-muted);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+.user-dropdown-name { font-weight: 800; font-size: 15px; color: var(--text-main); }
+.user-dropdown-email { font-size: 12px; color: var(--text-muted); word-break: break-all; }
+.user-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+  text-decoration: none;
+  border: 2px solid transparent;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  background: transparent;
+  text-align: left;
+  width: 100%;
+}
+.user-dropdown-item:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-color);
+  transform: translate(-1px, -1px);
+}
+.user-dropdown-item.danger:hover {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+/* ---------- AUTH MODAL ---------- */
+.auth-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 42, 102, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.auth-modal {
+  width: 100%;
+  max-width: 440px;
+  background: #FFF;
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  position: relative;
+  animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes modalPop {
+  0% { transform: scale(0.95) translateY(10px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.auth-modal-header {
+  padding: 18px 24px;
+  background: var(--split-diag);
+  color: #FFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: var(--border-width) solid var(--border-color);
+}
+.auth-modal-title { font-family: var(--font-family-heading); font-size: 22px; font-weight: 800; text-shadow: 2px 2px 0 var(--border-color); }
+.btn-close-modal {
+  background: #FFF;
+  color: var(--border-color);
+  border: 2px solid var(--border-color);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+.auth-modal-body { padding: 24px; }
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: var(--bg-muted);
+  padding: 4px;
+  border-radius: 12px;
+  border: 2px solid var(--border-color);
+}
+.auth-tab-btn {
+  flex: 1;
+  padding: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+}
+.auth-tab-btn.active {
+  background: #FFF;
+  border-color: var(--border-color);
+  box-shadow: 2px 2px 0 var(--border-color);
+}
+.quick-login-box {
+  margin-top: 20px;
+  padding: 14px;
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  background: var(--sky-light);
+}
+
+@media (max-width: 768px) {
+  .carousel-card { flex: 0 0 210px; }
+  .carousel-nav { display: none; }
 }

@@ -3,43 +3,133 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cek Pesanan — Mari Shop</title>
-  <meta name="description" content="Lacak status pesananmu dengan nomor invoice atau WhatsApp.">
+  <title>Cek Pesanan | Mari Shop</title>
+  <meta name="description" content="Lacak status pesananmu dengan nomor invoice atau akun terdaftar.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/brutal-components.css">
   <link rel="stylesheet" href="assets/css/layout.css">
   <link rel="stylesheet" href="assets/css/pages.css">
   <link rel="stylesheet" href="/assets/css/enhance.css">
   <script defer src="assets/js/main.js"></script>
+  <script defer src="assets/js/auth.js"></script>
   <script defer src="assets/js/copy-clipboard.js"></script>
   <script defer src="assets/js/check-order.js"></script>
   <!-- Alpine.js dilayani lokal oleh server (npm install). Harus paling akhir. -->
   <script defer src="/vendor/alpine/cdn.min.js"></script>
 </head>
 <body x-data="checkOrder()" x-init="init()">
-  <header class="navbar">
+  <header class="navbar" x-data="authNavComponent()" x-init="init()">
     <div class="container nav-wrapper">
       <a href="index.html" class="logo"><span class="logo-mark">MARI</span><span>SHOP</span></a>
       <form class="nav-search" action="index.html" method="get" role="search">
         <label for="navSearch" class="sr-only">Cari produk</label>
         <input id="navSearch" name="q" type="search" class="brutal-input" placeholder="Cari game, pulsa, atau akun premium..." autocomplete="off">
       </form>
-      <nav class="nav-links" aria-label="Navigasi utama">
-        <a href="index.html#katalog" class="btn btn-secondary btn-sm nav-opt"><img class="ico" src="/assets/img/icons/bag.svg" alt="" aria-hidden="true"> Kategori</a>
-        <a href="index.html#bantuan" class="btn btn-secondary btn-sm nav-opt"><img class="ico" src="/assets/img/icons/chat.svg" alt="" aria-hidden="true"> Bantuan</a>
-        <a href="check-order.html" class="btn btn-primary btn-sm"><img class="ico" src="/assets/img/icons/receipt.svg" alt="" aria-hidden="true"> Cek Pesanan</a>
+            <nav class="nav-links" aria-label="Navigasi utama">
+        <a href="index.html#katalog" class="btn btn-secondary btn-sm"><img class="ico" src="/assets/img/icons/bag.svg" alt="" aria-hidden="true"> Katalog</a>
+
+        <!-- Tombol Masuk / Profil Pengguna -->
+        <template x-if="!user">
+          <button type="button" class="btn btn-primary btn-sm" @click="openLoginModal('login')">
+            <img class="ico" src="/assets/img/icons/key.svg" alt="" aria-hidden="true"> Masuk
+          </button>
+        </template>
+
+        <template x-if="user">
+          <div class="user-menu-wrap">
+            <button type="button" class="user-btn" @click.stop="dropdownOpen = !dropdownOpen">
+              <span class="user-avatar-badge" x-text="user.name.charAt(0).toUpperCase()"></span>
+              <span x-text="user.name"></span>
+              <span style="font-size:12px;">▾</span>
+            </button>
+            <div class="user-dropdown" x-show="dropdownOpen" x-cloak @click.away="dropdownOpen = false">
+              <div class="user-dropdown-head">
+                <div class="user-dropdown-name" x-text="user.name"></div>
+                <div class="user-dropdown-email" x-text="user.email"></div>
+              </div>
+              <a href="check-order.html" class="user-dropdown-item"><img class="ico" src="/assets/img/icons/receipt.svg" alt="" aria-hidden="true"> Pesanan Saya</a>
+              <template x-if="user.role === 'admin'">
+                <a href="admin/index.html" class="user-dropdown-item"><img class="ico" src="/assets/img/icons/key.svg" alt="" aria-hidden="true"> Dashboard Admin</a>
+              </template>
+              <button type="button" class="user-dropdown-item danger" @click="doLogout()"><img class="ico" src="/assets/img/icons/cross.svg" alt="" aria-hidden="true"> Keluar</button>
+            </div>
+          </div>
+        </template>
       </nav>
+    </div>
+
+    <!-- AUTH MODAL -->
+    <div class="auth-backdrop" x-show="modalOpen" x-cloak @click.self="closeLoginModal()">
+      <div class="auth-modal" role="dialog" aria-modal="true">
+        <div class="auth-modal-header">
+          <div class="auth-modal-title" x-text="tab === 'login' ? 'Masuk ke Akun' : 'Daftar Akun Baru'"></div>
+          <button type="button" class="btn-close-modal" @click="closeLoginModal()">×</button>
+        </div>
+        <div class="auth-modal-body">
+          <div class="auth-tabs">
+            <button type="button" class="auth-tab-btn" :class="{ 'active': tab === 'login' }" @click="tab = 'login'; error = ''">Masuk</button>
+            <button type="button" class="auth-tab-btn" :class="{ 'active': tab === 'register' }" @click="tab = 'register'; error = ''">Daftar</button>
+          </div>
+          <div class="form-error" x-show="error" x-text="error" style="margin-bottom:14px;"></div>
+
+          <form x-show="tab === 'login'" @submit.prevent="submitLogin()">
+            <div class="form-group">
+              <label class="form-label" for="loginEmail">Alamat Email</label>
+              <input id="loginEmail" type="email" class="brutal-input" placeholder="nama@email.com" x-model="form.email" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="loginPass">Kata Sandi</label>
+              <input id="loginPass" type="password" class="brutal-input" placeholder="Minimal 6 karakter" x-model="form.password" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg" :disabled="loading" x-text="loading ? 'Memproses...' : 'Masuk Sekarang →'"></button>
+          </form>
+
+          <form x-show="tab === 'register'" @submit.prevent="submitRegister()">
+            <div class="form-group">
+              <label class="form-label" for="regName">Nama Lengkap</label>
+              <input id="regName" type="text" class="brutal-input" placeholder="Nama Anda" x-model="form.name" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regEmail">Alamat Email</label>
+              <input id="regEmail" type="email" class="brutal-input" placeholder="nama@email.com" x-model="form.email" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regPass">Kata Sandi</label>
+              <input id="regPass" type="password" class="brutal-input" placeholder="Minimal 6 karakter" x-model="form.password" required>
+            </div>
+            <button type="submit" class="btn btn-success btn-block btn-lg" :disabled="loading" x-text="loading ? 'Mendaftarkan...' : 'Daftar Akun Baru →'"></button>
+          </form>
+
+          <div class="quick-login-box">
+            <div style="font-size:12px; font-weight:800; text-transform:uppercase; margin-bottom:8px;">⚡ Akses Cepat Sekali Klik:</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn btn-sm btn-secondary" @click="doQuickLogin('customer')">👤 Akun Rifqi (Customer)</button>
+              <button type="button" class="btn btn-sm btn-secondary" @click="doQuickLogin('admin')">⚙️ Akun Mari (Admin)</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 
   <main class="container page-main">
     <div class="check-wrap">
+      <!-- Status Box User Terhubung -->
+      <template x-if="user">
+        <div class="guide-box" style="margin-bottom:16px; background:#D9F6FF; border-style:solid;">
+          <div style="font-size:16px; font-weight:800; color:var(--text-main);">
+            👤 Pesanan Terhubung: <span x-text="user.name"></span> (<span x-text="user.email"></span>)
+          </div>
+          <p class="section-sub" style="margin-top:4px;">Menampilkan seluruh riwayat transaksi pesanan pada akun Anda.</p>
+        </div>
+      </template>
+
       <section class="brutal-card">
-        <h1 class="section-title" style="margin-bottom:6px;"><img class="ico" src="/assets/img/icons/receipt.svg" alt="" aria-hidden="true"> Cek Pesanan</h1>
-        <p class="section-sub" style="margin-bottom:16px;">Lacak status pesananmu kapan saja.</p>
+        <h1 class="section-title" style="margin-bottom:6px;"><img class="ico" src="/assets/img/icons/receipt.svg" alt="" aria-hidden="true"> Lacak Pesanan</h1>
+        <p class="section-sub" style="margin-bottom:16px;">Pantau status proses transaksi Anda kapan saja.</p>
 
         <div class="seg" role="tablist" style="margin-bottom:16px;">
           <button type="button" role="tab" :class="{ 'active': mode === 'invoice' }" @click="setMode('invoice')">No. Invoice</button>
@@ -50,7 +140,7 @@
           <label class="sr-only" for="q" x-text="mode === 'invoice' ? 'Nomor invoice' : 'Nomor WhatsApp atau email'"></label>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <input id="q" class="brutal-input" style="flex:1; min-width:200px;" x-model="query" autocomplete="off"
-                   :placeholder="mode === 'invoice' ? 'Contoh: TRX-20261103-1234' : 'Contoh: 081234567890'" @input="error = ''">
+                   :placeholder="mode === 'invoice' ? 'Contoh: TRX-20261103-1234' : 'Contoh: 081234567890 atau nama@email.com'" @input="error = ''">
             <button type="submit" class="btn btn-primary" :disabled="loading" x-text="loading ? 'Mencari...' : 'Cari'"></button>
           </div>
           <div class="form-error" x-text="error"></div>
@@ -67,7 +157,7 @@
       <section class="brutal-card empty-state" x-show="searched && !loading && !error && results.length === 0" x-cloak>
         <img class="empty-ico" src="/assets/img/icons/search.svg" alt="" aria-hidden="true">
         <h2 class="step-title">Pesanan tidak ditemukan</h2>
-        <p class="section-sub">Periksa kembali nomor invoice atau kontak yang kamu masukkan.</p>
+        <p class="section-sub">Periksa kembali nomor invoice atau kontak yang Anda masukkan.</p>
       </section>
 
       <template x-for="o in results" :key="invId(o)">
@@ -75,12 +165,12 @@
           <div class="result-top">
             <div>
               <div class="invoice-id" x-text="invId(o)"></div>
-              <div class="result-title" x-text="(o.product_name ? o.product_name + ' — ' : '') + (o.variant_name || '')"></div>
+              <div class="result-title" x-text="(o.product_name ? o.product_name + ' | ' : '') + (o.variant_name || '')"></div>
             </div>
             <span class="badge" :class="meta(o).cls"><img class="ico" :src="'/assets/img/icons/' + meta(o).icon + '.svg'" alt="" aria-hidden="true"> <span x-text="meta(o).label"></span></span>
           </div>
-          <div class="sum-row"><span class="text-muted">Total</span><span class="mono" x-text="rp(o.total_amount)"></span></div>
-          <a :href="'invoice.html?id=' + encodeURIComponent(invId(o))" class="btn btn-primary btn-sm" style="justify-self:start;">Lihat Invoice →</a>
+          <div class="sum-row"><span class="text-muted">Total Pembayaran</span><span class="mono" x-text="rp(o.total_amount)"></span></div>
+          <a :href="'invoice.html?id=' + encodeURIComponent(invId(o))" class="btn btn-primary btn-sm" style="justify-self:start;">Buka Invoice →</a>
         </section>
       </template>
     </div>
@@ -90,7 +180,7 @@
     <div class="container footer-grid">
       <div>
         <div class="footer-title">MARI SHOP</div>
-        <p class="footer-text">Top up game, pulsa, dan akun premium. Proses cepat, harga jelas, tanpa ribet.</p>
+        <p class="footer-text">Top up game, kuota, dan voucher instan. Proses cepat, harga jelas, tanpa ribet.</p>
       </div>
       <div>
         <div class="footer-h">Metode Bayar</div>
@@ -103,11 +193,11 @@
         <nav class="footer-links" aria-label="Footer">
           <a href="check-order.html">Cek Pesanan</a>
           <a href="index.html#bantuan">Bantuan &amp; FAQ</a>
-          <a href="admin/index.html">Panel Admin</a>
+          <a href="admin/index.html">Panel Kelola</a>
         </nav>
       </div>
     </div>
-    <div class="container footer-note">Proyek Tugas Besar Pengantar Basis Data (Kelas A1) · Data transaksi bersifat simulasi untuk demo.</div>
+    <div class="container footer-note">© 2026 Mari Shop | Platform Top Up Game &amp; Digital Goods Tercepat dan Terpercaya di Indonesia.</div>
   </footer>
 </body>
 </html>

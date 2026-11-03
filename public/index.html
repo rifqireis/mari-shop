@@ -3,34 +3,121 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mari Shop — Top Up Game, Pulsa &amp; Akun Premium</title>
-  <meta name="description" content="Top up game, pulsa, dan akun premium instan dengan harga terbaik.">
+  <title>Mari Shop | Top Up Game, Pulsa &amp; Akun Premium Instan</title>
+  <meta name="description" content="Top up game, kuota, voucher, dan akun streaming premium instan dengan harga terbaik.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/tokens.css">
   <link rel="stylesheet" href="assets/css/brutal-components.css">
   <link rel="stylesheet" href="assets/css/layout.css">
   <link rel="stylesheet" href="assets/css/pages.css">
   <link rel="stylesheet" href="/assets/css/enhance.css">
   <script defer src="assets/js/main.js"></script>
+  <script defer src="assets/js/auth.js"></script>
   <script defer src="assets/js/copy-clipboard.js"></script>
   <script defer src="assets/js/home.js"></script>
   <!-- Alpine.js dilayani lokal oleh server (npm install). Harus paling akhir. -->
   <script defer src="/vendor/alpine/cdn.min.js"></script>
 </head>
 <body x-data="home()" x-init="init()">
-  <header class="navbar">
+  <header class="navbar" x-data="authNavComponent()" x-init="init()">
     <div class="container nav-wrapper">
       <a href="index.html" class="logo"><span class="logo-mark">MARI</span><span>SHOP</span></a>
       <form class="nav-search" action="index.html" method="get" role="search" @submit.prevent="document.getElementById('katalog').scrollIntoView()">
-        <label for="navSearch" class="sr-only">Cari produk</label>
+        <label for=\"navSearch\" class="sr-only">Cari produk</label>
         <input id="navSearch" name="q" type="search" class="brutal-input" placeholder="Cari game, pulsa, voucher, atau akun premium..." autocomplete="off" x-model="searchQuery">
       </form>
-      <nav class="nav-links" aria-label="Navigasi utama">
-        <a href="index.html#bantuan" class="btn btn-secondary btn-sm nav-opt"><img class="ico" src="/assets/img/icons/chat.svg" alt="" aria-hidden="true"> Bantuan</a>
-        <a href="check-order.html" class="btn btn-primary btn-sm"><img class="ico" src="/assets/img/icons/receipt.svg" alt="" aria-hidden="true"> Cek Pesanan</a>
+            <nav class="nav-links" aria-label="Navigasi utama">
+        <a href="index.html#katalog" class="btn btn-secondary btn-sm"><img class="ico" src="/assets/img/icons/bag.svg" alt="" aria-hidden="true"> Katalog</a>
+
+        <!-- Tombol Masuk / Profil Pengguna -->
+        <template x-if="!user">
+          <button type="button" class="btn btn-primary btn-sm" @click="openLoginModal('login')">
+            <img class="ico" src="/assets/img/icons/key.svg" alt="" aria-hidden="true"> Masuk
+          </button>
+        </template>
+
+        <template x-if="user">
+          <div class="user-menu-wrap">
+            <button type="button" class="user-btn" @click.stop="dropdownOpen = !dropdownOpen" :aria-expanded="dropdownOpen">
+              <span class="user-avatar-badge" x-text="user.name.charAt(0).toUpperCase()"></span>
+              <span x-text="user.name"></span>
+              <span style="font-size:12px;">▾</span>
+            </button>
+            <div class="user-dropdown" x-show="dropdownOpen" x-cloak @click.away="dropdownOpen = false">
+              <div class="user-dropdown-head">
+                <div class="user-dropdown-name" x-text="user.name"></div>
+                <div class="user-dropdown-email" x-text="user.email"></div>
+              </div>
+              <a href="check-order.html" class="user-dropdown-item"><img class="ico" src="/assets/img/icons/receipt.svg" alt="" aria-hidden="true"> Pesanan Saya</a>
+              <template x-if="user.role === 'admin'">
+                <a href="admin/index.html" class="user-dropdown-item"><img class="ico" src="/assets/img/icons/key.svg" alt="" aria-hidden="true"> Dashboard Admin</a>
+              </template>
+              <button type="button" class="user-dropdown-item danger" @click="doLogout()"><img class="ico" src="/assets/img/icons/cross.svg" alt="" aria-hidden="true"> Keluar</button>
+            </div>
+          </div>
+        </template>
       </nav>
+    </div>
+
+    <!-- AUTH MODAL (LOGIN & REGISTER) -->
+    <div class="auth-backdrop" x-show="modalOpen" x-cloak @click.self="closeLoginModal()">
+      <div class="auth-modal" role="dialog" aria-modal="true">
+        <div class="auth-modal-header">
+          <div class="auth-modal-title" x-text="tab === 'login' ? 'Masuk ke Akun' : 'Daftar Akun Baru'"></div>
+          <button type="button" class="btn-close-modal" @click="closeLoginModal()" aria-label="Tutup">×</button>
+        </div>
+        <div class="auth-modal-body">
+          <div class="auth-tabs">
+            <button type="button" class="auth-tab-btn" :class="{ 'active': tab === 'login' }" @click="tab = 'login'; error = ''">Masuk</button>
+            <button type="button" class="auth-tab-btn" :class="{ 'active': tab === 'register' }" @click="tab = 'register'; error = ''">Daftar</button>
+          </div>
+
+          <div class="form-error" x-show="error" x-text="error" style="margin-bottom:14px;"></div>
+
+          <!-- Form Login -->
+          <form x-show="tab === 'login'" @submit.prevent="submitLogin()">
+            <div class="form-group">
+              <label class="form-label" for="loginEmail">Alamat Email</label>
+              <input id="loginEmail" type="email" class="brutal-input" placeholder="nama@email.com" x-model="form.email" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="loginPass">Kata Sandi</label>
+              <input id="loginPass" type="password" class="brutal-input" placeholder="Minimal 6 karakter" x-model="form.password" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg" :disabled="loading" x-text="loading ? 'Memproses...' : 'Masuk Sekarang →'"></button>
+          </form>
+
+          <!-- Form Register -->
+          <form x-show="tab === 'register'" @submit.prevent="submitRegister()">
+            <div class="form-group">
+              <label class="form-label" for="regName">Nama Lengkap</label>
+              <input id="regName" type="text" class="brutal-input" placeholder="Nama Anda" x-model="form.name" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regEmail">Alamat Email</label>
+              <input id="regEmail" type="email" class="brutal-input" placeholder="nama@email.com" x-model="form.email" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regPass">Kata Sandi</label>
+              <input id="regPass" type="password" class="brutal-input" placeholder="Minimal 6 karakter" x-model="form.password" required>
+            </div>
+            <button type="submit" class="btn btn-success btn-block btn-lg" :disabled="loading" x-text="loading ? 'Mendaftarkan...' : 'Daftar Akun Baru →'"></button>
+          </form>
+
+          <!-- Akses Cepat Akun Demo -->
+          <div class="quick-login-box">
+            <div style="font-size:12px; font-weight:800; text-transform:uppercase; margin-bottom:8px; color:var(--text-main);">
+              ⚡ Akses Cepat Sekali Klik:
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn btn-sm btn-secondary" @click="doQuickLogin('customer')">👤 Akun Rifqi (Customer)</button>
+              <button type="button" class="btn btn-sm btn-secondary" @click="doQuickLogin('admin')">⚙️ Akun Mari (Admin)</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -62,17 +149,28 @@
       <div class="perk"><img class="ico-lg" src="/assets/img/icons/chat.svg" alt="" aria-hidden="true"><div>Bantuan Cepat<small>Cek status kapan saja</small></div></div>
     </div>
 
-    <!-- KATALOG: 1 halaman, dipisah garis per kategori -->
+    <!-- KATALOG PRODUK: Horizontal Carousel Berderet per Kategori -->
     <section id="katalog" class="catalog-head" aria-labelledby="katalog-title">
       <div class="section-head">
         <div>
-          <h2 id="katalog-title" class="section-title">Semua Produk</h2>
-          <p class="section-sub" x-show="!loading && !error"><span x-text="filteredProducts.length"></span> produk ditemukan<span x-show="searchQuery"> untuk "<span x-text="searchQuery"></span>"</span></p>
+          <h2 id="katalog-title" class="section-title">Katalog Produk</h2>
+          <p class="section-sub" x-show="!loading && !error">
+            <span x-text="filteredProducts.length"></span> produk tersedia<span x-show="searchQuery"> untuk pencarian "<strong><span x-text="searchQuery"></span></strong>"</span>
+          </p>
+        </div>
+
+        <!-- Filter Tab Kategori Instan -->
+        <div class="tab-scroll" style="margin-top:12px;">
+          <template x-for="cat in categories" :key="cat.id">
+            <a :href="'#kat-' + cat.slug" class="category-tab" @click.prevent="document.getElementById('kat-' + cat.slug)?.scrollIntoView({ behavior: 'smooth' })">
+              <span x-text="cat.name"></span>
+            </a>
+          </template>
         </div>
       </div>
 
       <div class="product-grid" x-show="loading" aria-busy="true">
-        <template x-for="i in 8"><div class="skeleton"></div></template>
+        <template x-for="i in 4"><div class="skeleton"></div></template>
       </div>
 
       <div class="brutal-card empty-state" x-show="!loading && error" x-cloak>
@@ -92,24 +190,34 @@
                 <span class="count" x-text="sec.items.length"></span>
               </div>
               <div class="cat-line" aria-hidden="true"></div>
+              
+              <!-- Kontrol Navigasi Geser (Kiri & Kanan) -->
+              <div class="carousel-nav" x-show="sec.items.length > 3">
+                <button type="button" class="btn-carousel" :aria-label="'Geser kiri ' + sec.cat.name" @click="scrollCarousel(sec.cat.slug, -1)">‹</button>
+                <button type="button" class="btn-carousel" :aria-label="'Geser kanan ' + sec.cat.name" @click="scrollCarousel(sec.cat.slug, 1)">›</button>
+              </div>
             </div>
-            <div class="product-grid">
-              <template x-for="item in sec.items" :key="item.id">
-                <a :href="'order.html?product=' + item.slug" class="product-card" :aria-label="'Top up ' + item.name">
-                  <span class="sticker" :class="stickerFor(item).cls" x-text="stickerFor(item).text"></span>
-                  <img :src="thumbUrl(item.thumbnail_url)" @error="imgFallback($event)" class="product-thumbnail" :alt="'Logo ' + item.name" loading="lazy" width="200" height="200">
-                  <h3 class="product-title" x-text="item.name"></h3>
-                  <div class="product-meta" x-text="item.provider_code"></div>
-                  <div x-show="priceFrom(item)">
-                    <div class="product-from">Mulai dari</div>
-                    <div class="product-price" x-text="priceFrom(item)"></div>
-                  </div>
-                  <div class="product-foot">
-                    <span :class="inStock(item) ? 'stock-ok' : 'stock-out'" x-text="inStock(item) ? '● Tersedia' : '● Stok Habis'"></span>
-                    <span class="btn btn-primary btn-sm" aria-hidden="true"><img class="ico" src="/assets/img/icons/bag-bare.svg" alt="" aria-hidden="true"> Beli</span>
-                  </div>
-                </a>
-              </template>
+
+            <!-- Track Produk Berderet Horizontal -->
+            <div class="carousel-wrap">
+              <div class="carousel-track" :id="'track-' + sec.cat.slug">
+                <template x-for="item in sec.items" :key="item.id">
+                  <a :href="'order.html?product=' + item.slug" class="product-card carousel-card" :aria-label="'Beli ' + item.name">
+                    <span class="sticker" :class="stickerFor(item).cls" x-text="stickerFor(item).text"></span>
+                    <img :src="thumbUrl(item.thumbnail_url)" @error="imgFallback($event)" class="product-thumbnail" :alt="'Logo ' + item.name" loading="lazy" width="200" height="200">
+                    <h3 class="product-title" x-text="item.name"></h3>
+                    <div class="product-meta" x-text="item.provider_code"></div>
+                    <div x-show="priceFrom(item)">
+                      <div class="product-from">Mulai dari</div>
+                      <div class="product-price" x-text="priceFrom(item)"></div>
+                    </div>
+                    <div class="product-foot">
+                      <span :class="inStock(item) ? 'stock-ok' : 'stock-out'" x-text="inStock(item) ? '● Tersedia' : '● Habis'"></span>
+                      <span class="btn btn-primary btn-sm" aria-hidden="true"><img class="ico" src="/assets/img/icons/bag-bare.svg" alt="" aria-hidden="true"> Beli</span>
+                    </div>
+                  </a>
+                </template>
+              </div>
             </div>
           </section>
         </template>
@@ -117,7 +225,7 @@
         <div class="brutal-card empty-state" style="margin-top:20px;" x-show="filteredProducts.length === 0">
           <img class="empty-ico" src="/assets/img/icons/search.svg" alt="" aria-hidden="true">
           <h3 class="section-title" style="font-size:24px;">Produk tidak ditemukan</h3>
-          <p class="section-sub" style="margin-bottom:16px;">Coba kata kunci lain.</p>
+          <p class="section-sub" style="margin-bottom:16px;">Coba gunakan kata kunci pencarian yang lain.</p>
           <button type="button" class="btn btn-secondary" @click="searchQuery = ''">Reset Pencarian</button>
         </div>
       </div>
@@ -125,21 +233,21 @@
 
     <!-- CARA ORDER -->
     <section class="section" aria-labelledby="how-title">
-      <h2 id="how-title" class="section-title" style="margin-bottom:22px;">Cara Order</h2>
+      <h2 id="how-title" class="section-title" style="margin-bottom:22px;">Cara Order Cepat</h2>
       <div class="how-grid">
-        <div class="brutal-card how-card"><img class="ico-lg how-ico" src="/assets/img/icons/search.svg" alt="" aria-hidden="true"><div class="how-num">1</div><h3 class="step-title">Pilih Produk</h3><p class="section-sub">Cari game atau layanan, lalu pilih nominal yang kamu mau.</p></div>
-        <div class="brutal-card how-card"><img class="ico-lg how-ico" src="/assets/img/icons/card.svg" alt="" aria-hidden="true"><div class="how-num">2</div><h3 class="step-title">Isi Data &amp; Bayar</h3><p class="section-sub">Masukkan ID tujuan, pilih metode pembayaran, lalu bayar.</p></div>
-        <div class="brutal-card how-card"><img class="ico-lg how-ico" src="/assets/img/icons/gift.svg" alt="" aria-hidden="true"><div class="how-num">3</div><h3 class="step-title">Terima Pesanan</h3><p class="section-sub">Pantau status di halaman invoice. Akun/voucher tampil otomatis setelah lunas.</p></div>
+        <div class="brutal-card how-card"><img class="ico-lg how-ico" src="/assets/img/icons/search.svg" alt="" aria-hidden="true"><div class="how-num">1</div><h3 class="step-title">Pilih Produk</h3><p class="section-sub">Cari game atau layanan digital favorit, lalu tentukan nominal paket.</p></div>
+        <div class="brutal-card how-card"><img class="ico-lg how-ico" src="/assets/img/icons/card.svg" alt="" aria-hidden="true"><div class="how-num">2</div><h3 class="step-title">Isi Data &amp; Bayar</h3><p class="section-sub">Masukkan ID tujuan, pilih metode pembayaran otomatis, dan selesaikan transfer.</p></div>
+        <div class="brutal-card how-card"><img class="ico-lg how-ico" src="/assets/img/icons/gift.svg" alt="" aria-hidden="true"><div class="how-num">3</div><h3 class="step-title">Terima Pesanan</h3><p class="section-sub">Pantau proses instan di halaman invoice. Kredensial akun/voucher langsung tampil.</p></div>
       </div>
     </section>
 
-    <!-- FAQ -->
+    <!-- BANTUAN & FAQ -->
     <section id="bantuan" class="section faq" aria-labelledby="faq-title">
       <h2 id="faq-title" class="section-title" style="margin-bottom:22px;">Bantuan &amp; FAQ</h2>
-      <details><summary>Berapa lama batas waktu pembayaran?</summary><p>Setiap invoice berlaku 15 menit. Lewat dari itu pesanan akan kedaluwarsa dan kamu perlu membuat pesanan baru.</p></details>
-      <details><summary>Bagaimana cara mengecek status pesanan?</summary><p>Buka menu <a href="check-order.html"><strong>Cek Pesanan</strong></a>, lalu masukkan nomor invoice (TRX-...) atau nomor WhatsApp yang kamu pakai saat memesan.</p></details>
-      <details><summary>Kenapa ada biaya tambahan saat bayar?</summary><p>Itu biaya layanan metode pembayaran (flat dan/atau persentase). Rinciannya selalu tampil di ringkasan pesanan sebelum kamu membayar.</p></details>
-      <details><summary>Salah memasukkan ID game, bagaimana?</summary><p>Pastikan ID dan Zone sudah benar sebelum membayar. Pesanan yang sudah diproses tidak bisa diubah.</p></details>
+      <details><summary>Berapa lama batas waktu pembayaran?</summary><p>Setiap invoice berlaku 15 menit. Setelah melewati batas waktu, tagihan akan kedaluwarsa secara otomatis demi keamanan transaksi.</p></details>
+      <details><summary>Bagaimana cara mengecek status pesanan?</summary><p>Anda dapat masuk ke akun untuk melihat seluruh riwayat di menu <strong>Pesanan Saya</strong>, atau memasukkan nomor invoice/WhatsApp di halaman <a href="check-order.html"><strong>Cek Pesanan</strong></a>.</p></details>
+      <details><summary>Kenapa ada biaya tambahan saat pembayaran?</summary><p>Biaya tersebut adalah biaya layanan gerbang pembayaran (QRIS / Virtual Account bank). Rincian biaya ditampilkan secara transparan sebelum Anda menekan tombol bayar.</p></details>
+      <details><summary>Apakah akun streaming dan voucher bergaransi?</summary><p>Semua produk digital yang tersedia di Mari Shop dijamin 100% legal dan siap pakai langsung dari provider resmi.</p></details>
     </section>
   </main>
 
@@ -147,24 +255,24 @@
     <div class="container footer-grid">
       <div>
         <div class="footer-title">MARI SHOP</div>
-        <p class="footer-text">Top up game, pulsa, dan akun premium. Proses cepat, harga jelas, tanpa ribet.</p>
+        <p class="footer-text">Platform top up game, voucher, dan akun digital terpercaya. Proses instan 24 jam dengan harga transparan.</p>
       </div>
       <div>
-        <div class="footer-h">Metode Bayar</div>
+        <div class="footer-h">Metode Pembayaran Resmi</div>
         <div class="footer-pay">
           <span class="badge badge-yellow">QRIS</span><span class="badge badge-blue">BCA VA</span><span class="badge badge-blue">BRI VA</span><span class="badge badge-pink">DANA</span><span class="badge badge-green">GOPAY</span>
         </div>
       </div>
       <div>
-        <div class="footer-h">Menu</div>
+        <div class="footer-h">Navigasi</div>
         <nav class="footer-links" aria-label="Footer">
           <a href="check-order.html">Cek Pesanan</a>
-          <a href="index.html#bantuan">Bantuan &amp; FAQ</a>
-          <a href="admin/index.html">Panel Admin</a>
+          <a href="#bantuan">Bantuan &amp; FAQ</a>
+          <a href="admin/index.html">Panel Kelola</a>
         </nav>
       </div>
     </div>
-    <div class="container footer-note">Proyek Tugas Besar Pengantar Basis Data (Kelas A1) · Data transaksi bersifat simulasi untuk demo.</div>
+    <div class="container footer-note">© 2026 Mari Shop | Platform Top Up Game &amp; Digital Goods Tercepat dan Terpercaya di Indonesia.</div>
   </footer>
 </body>
 </html>

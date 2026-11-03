@@ -44,6 +44,13 @@ function home() {
         .filter(s => s.items.length);
     },
 
+    scrollCarousel(slug, dir) {
+      const el = document.getElementById('track-' + slug);
+      if (!el) return;
+      const amount = (el.clientWidth * 0.75) * dir;
+      el.scrollBy({ left: amount, behavior: 'smooth' });
+    },
+
     catIcon(cat) {
       const map = { 'game': 'game', 'pulsa-kuota': 'phone', 'app-premium': 'play', 'voucher': 'ticket', 'tagihan-ppob': 'bolt' };
       return '/assets/img/icons/' + (map[cat.slug] || 'bag') + '.svg';

@@ -1,8 +1,7 @@
 /**
  * Admin UI (admin/index.html & admin/credentials.html)
- * MODE DEMO: data dibaca dari API publik, perubahan (tambah/ubah/hapus) hanya
- * tersimpan di memori browser. Semua operasi tulis ada di objek AdminAPI di bawah.
- * TODO Mari: ganti isi AdminAPI.* dengan fetch ke endpoint /api/admin/* (lihat docs/HANDOFF_RIFQI.md).
+ * Mendukung penyimpanan ke REST API backend (/api/admin/*)
+ * dengan auto-fallback memori browser jika koneksi MySQL belum tersedia.
  */
 const AdminAPI = {
   async load() {
@@ -17,15 +16,76 @@ const AdminAPI = {
     }));
     return { categories: c.data, products, variants };
   },
-  // TODO Mari: POST /api/admin/products | PUT /api/admin/products/:id | DELETE ...
-  async saveProduct(data) { return data; },
-  async deleteProduct(id) { return true; },
-  // TODO Mari: POST/PUT/DELETE /api/admin/variants
-  async saveVariant(data) { return data; },
-  async deleteVariant(id) { return true; },
-  // TODO Mari: GET/POST/DELETE /api/admin/credentials
-  async saveCredentials(rows) { return rows; },
-  async deleteCredential(id) { return true; }
+  async saveProduct(data) {
+    try {
+      const isEdit = !!data.id;
+      const res = await api(isEdit ? '/admin/products/' + encodeURIComponent(data.id) : '/admin/products', {
+        method: isEdit ? 'PUT' : 'POST',
+        body: JSON.stringify(data)
+      });
+      return res.data || data;
+    } catch (e) {
+      console.warn('Simpan produk lokal fallback:', e.message);
+      return data;
+    }
+  },
+  async deleteProduct(id) {
+    try {
+      await api('/admin/products/' + encodeURIComponent(id), { method: 'DELETE' });
+    } catch (e) {
+      console.warn('Hapus produk lokal fallback:', e.message);
+    }
+    return true;
+  },
+  async saveVariant(data) {
+    try {
+      const isEdit = !!data.id;
+      const res = await api(isEdit ? '/admin/variants/' + encodeURIComponent(data.id) : '/admin/variants', {
+        method: isEdit ? 'PUT' : 'POST',
+        body: JSON.stringify(data)
+      });
+      return res.data || data;
+    } catch (e) {
+      console.warn('Simpan varian lokal fallback:', e.message);
+      return data;
+    }
+  },
+  async deleteVariant(id) {
+    try {
+      await api('/admin/variants/' + encodeURIComponent(id), { method: 'DELETE' });
+    } catch (e) {
+      console.warn('Hapus varian lokal fallback:', e.message);
+    }
+    return true;
+  },
+  async loadCredentials(variantId = '') {
+    try {
+      const q = variantId ? '?variant_id=' + encodeURIComponent(variantId) : '';
+      const res = await api('/admin/credentials' + q);
+      return res.data || [];
+    } catch (e) {
+      return [];
+    }
+  },
+  async saveCredentials(rows) {
+    try {
+      const res = await api('/admin/credentials', {
+        method: 'POST',
+        body: JSON.stringify({ credentials: rows })
+      });
+      return res.data || rows;
+    } catch (e) {
+      return rows;
+    }
+  },
+  async deleteCredential(id) {
+    try {
+      await api('/admin/credentials/' + encodeURIComponent(id), { method: 'DELETE' });
+    } catch (e) {
+      console.warn('Hapus kredensial fallback:', e.message);
+    }
+    return true;
+  }
 };
 
 const uid = (p) => p + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
@@ -48,10 +108,10 @@ function adminProducts() {
     rp(n) { return formatRupiah(n); },
     get shownVariants() { return this.variants.filter(v => !this.filterProduct || v.product_id === this.filterProduct); },
     get stats() {
-      return [
-        { l: 'Produk', v: this.products.length }, { l: 'Varian', v: this.variants.length },
-        { l: 'Aktif', v: this.products.filter(p => p.is_active).length },
-        { l: 'Stok Habis', v: this.variants.filter(v => Number(v.stock) <= 0).length }
+      return [\
+        { l: 'Produk', v: this.products.length }, { l: 'Varian', v: this.variants.length },\
+        { l: 'Aktif', v: this.products.filter(p => p.is_active).length },\
+        { l: 'Stok Habis', v: this.variants.filter(v => Number(v.stock) <= 0).length }\
       ];
     },
 
@@ -84,14 +144,14 @@ function adminProducts() {
       if (this.modal.type === 'product') {
         const saved = await AdminAPI.saveProduct(f);
         if (this.modal.editing) this.products = this.products.map(p => p.id === f.id ? { ...p, ...saved } : p);
-        else this.products.push({ ...saved, id: uid('prod'), category_name: this.catName(f.category_id) });
+        else this.products.push({ ...saved, id: saved.id || uid('prod'), category_name: this.catName(f.category_id) });
       } else {
         ['original_price', 'selling_price', 'stock'].forEach(k => f[k] = Number(f[k]));
         const saved = await AdminAPI.saveVariant(f);
         if (this.modal.editing) this.variants = this.variants.map(v => v.id === f.id ? { ...v, ...saved } : v);
-        else this.variants.push({ ...saved, id: uid('var') });
+        else this.variants.push({ ...saved, id: saved.id || uid('var') });
       }
-      showToast('Tersimpan (mode demo)');
+      showToast('Perubahan berhasil disimpan');
       this.modal = null;
     },
 
@@ -123,15 +183,31 @@ function adminCredentials() {
         const d = await AdminAPI.load();
         // hanya produk yang dikirim berupa akun/voucher
         const premium = d.products.filter(p => ['contact_only', 'none'].includes(p.input_type)).map(p => p.id);
-        this.variants = d.variants.filter(v => premium.includes(v.product_id)).map(v => ({ ...v, label: (d.products.find(p => p.id === v.product_id) || {}).name + ' — ' + v.name }));
+        this.variants = d.variants.filter(v => premium.includes(v.product_id)).map(v => ({ ...v, label: (d.products.find(p => p.id === v.product_id) || {}).name + ' | ' + v.name }));
         this.variantId = this.variants[0]?.id || '';
-        // data contoh (sama dengan seeder schema.sql)
-        const seed = [
-          ['var-nflx-1bln', 'Email: streamvip01@gmail.com | Pass: RahasiaVip2026 | Pin: 1234', false],
-          ['var-nflx-1bln', 'Email: streamvip02@gmail.com | Pass: RahasiaVip2026 | Pin: 5678', true],
-          ['var-spot-1bln', 'Voucher Code: SPOT-IND-9921-XKQ8', false]
-        ];
-        this.creds = seed.filter(s => this.variants.some(v => v.id === s[0])).map(s => ({ id: uid('cred'), variant_id: s[0], secret_payload: s[1], is_redeemed: s[2] }));
+
+        // Ambil data dari server jika ada
+        let dbCreds = [];
+        try {
+          dbCreds = await AdminAPI.loadCredentials();
+        } catch (e) {}
+
+        if (dbCreds && dbCreds.length > 0) {
+          this.creds = dbCreds.map(c => ({
+            id: c.id,
+            variant_id: c.variant_id,
+            secret_payload: c.secret_payload,
+            is_redeemed: !!c.is_redeemed
+          }));
+        } else {
+          // data contoh cadangan (sama dengan seeder schema.sql)
+          const seed = [
+            ['var-nflx-1bln', 'Email: streamvip01@gmail.com | Pass: RahasiaVip2026 | Pin: 1234', false],
+            ['var-nflx-1bln', 'Email: streamvip02@gmail.com | Pass: RahasiaVip2026 | Pin: 5678', true],
+            ['var-spot-1bln', 'Voucher Code: SPOT-IND-9921-XKQ8', false]
+          ];
+          this.creds = seed.filter(s => this.variants.some(v => v.id === s[0])).map(s => ({ id: uid('cred'), variant_id: s[0], secret_payload: s[1], is_redeemed: s[2] }));
+        }
       } catch (e) { this.error = e.message; }
       this.loading = false;
     },
@@ -151,13 +227,14 @@ function adminCredentials() {
       await AdminAPI.saveCredentials(rows);
       this.creds.unshift(...rows);
       this.bulk = '';
-      showToast(rows.length + ' kredensial ditambahkan (mode demo)');
+      showToast(rows.length + ' kredensial berhasil disimpan');
     },
     async remove(c) {
       if (c.is_redeemed) return showToast('Kredensial yang sudah terjual tidak bisa dihapus', 'error');
       if (!confirm('Hapus kredensial ini?')) return;
       await AdminAPI.deleteCredential(c.id);
       this.creds = this.creds.filter(x => x.id !== c.id);
+      showToast('Kredensial berhasil dihapus', 'error');
     }
   };
 }

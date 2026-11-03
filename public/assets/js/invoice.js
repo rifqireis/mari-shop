@@ -1,7 +1,7 @@
 /**
  * Halaman Invoice (invoice.html?id=TRX-XXXX)
  * - countdown 15 menit, auto-refresh status tiap 5 dtk selama belum bayar
- * - QRIS (visual simulasi), VA/E-Wallet (salin kode), secret payload akun/voucher
+ * - QRIS (QR Asli dari library server /api/qr + fallback deterministik), VA/E-Wallet (salin kode), secret payload akun/voucher
  */
 const PAY_WINDOW_MS = 15 * 60 * 1000;
 const DEMO_MODE = true; // set false untuk menyembunyikan tombol "Simulasi Bayar" setelah presentasi
@@ -11,6 +11,7 @@ function invoice() {
     id: '', order: null, loading: true, notFound: false, error: '',
     remainingMs: PAY_WINDOW_MS, deadline: 0, tick: null, poll: null,
     paying: false, demo: DEMO_MODE,
+    realQrSvg: '',
 
     async init() {
       this.id = (getParam('id') || '').trim();
@@ -31,9 +32,24 @@ function invoice() {
         const created = new Date(this.order.created_at).getTime();
         this.deadline = (isNaN(created) ? Date.now() : created) + PAY_WINDOW_MS;
         this.updateClock();
+        if (this.isQris && !this.realQrSvg) {
+          await this.loadQr();
+        }
       } catch (e) {
         if (silent) return;
         if (e.status === 404) this.notFound = true; else this.error = e.message;
+      }
+    },
+
+    async loadQr() {
+      try {
+        const text = this.order.payment_reference || this.id;
+        const res = await fetch('/api/qr?text=' + encodeURIComponent(text));
+        if (res.ok) {
+          this.realQrSvg = await res.text();
+        }
+      } catch (e) {
+        // Fallback ke simulasi visual jika gagal
       }
     },
 
@@ -59,7 +75,7 @@ function invoice() {
     get steps() {
       const paid = this.order && this.order.payment_status === 'paid';
       const done = paid && this.order.fulfillment_status === 'success';
-      return [
+      return [\
         { t: '1. Pesanan Dibuat', ok: true },
         { t: '2. Dibayar', ok: paid },
         { t: '3. Diproses', ok: paid },
@@ -77,7 +93,7 @@ function invoice() {
     get methodName() { return this.order.payment_method_name || this.order.payment_method || this.order.payment_method_id; },
     get productLine() {
       const o = this.order;
-      return o.product_name ? o.product_name + ' — ' + (o.variant_name || '') : (o.variant_name || o.variant_id);
+      return o.product_name ? o.product_name + ' | ' + (o.variant_name || '') : (o.variant_name || o.variant_id);
     },
     get targetLine() {
       const o = this.order;
@@ -87,8 +103,9 @@ function invoice() {
     get credentials() { return this.order && this.order.credentials; },
     rp(n) { return formatRupiah(n); },
 
-    // ----- QR visual simulasi (deterministik dari kode pembayaran) -----
+    // ----- QR visual (Asli dari library qrcode server, dengan fallback simulasi) -----
     get qrSvg() {
+      if (this.realQrSvg) return this.realQrSvg;
       const seedStr = String(this.order.payment_reference || this.id);
       let h = 2166136261;
       for (const ch of seedStr) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; }
@@ -102,7 +119,7 @@ function invoice() {
       }
       const finder = (ox, oy) =>
         `<rect x="${ox + Q}" y="${oy + Q}" width="7" height="7"/><rect x="${ox + Q + 1}" y="${oy + Q + 1}" width="5" height="5" fill="#fff"/><rect x="${ox + Q + 2}" y="${oy + Q + 2}" width="3" height="3"/>`;
-      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges"><rect width="${size}" height="${size}" fill="#fff"/><g fill="#121212">${rects}${finder(0, 0)}${finder(N - 7, 0)}${finder(0, N - 7)}</g></svg>`;
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges"><rect width="${size}" height="${size}" fill="#fff"/><g fill="#0B2A66">${rects}${finder(0, 0)}${finder(N - 7, 0)}${finder(0, N - 7)}</g></svg>`;
     },
     downloadQr() {
       const blob = new Blob([this.qrSvg], { type: 'image/svg+xml' });

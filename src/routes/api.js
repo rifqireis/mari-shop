@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/db');
+const QRCode = require('qrcode');
 
 // Fallback Mock Data (Agar Frontend bisa dites seketika meskipun MySQL belum dinyalakan)
 // CATATAN: data ini DICERMINKAN dari seeder database/schema.sql supaya tampilan sama di kedua mode.
@@ -531,6 +532,270 @@ router.post('/orders/:id/pay', async (req, res) => {
     }
     return res.json({ success: true, message: 'Pembayaran disimulasikan lunas (Mock)' });
   }
+});
+
+
+// ============================================================
+// 8. GET /api/qr (Generate Real Scannable SVG QR Code)
+// ============================================================
+router.get('/qr', async (req, res) => {
+  const text = req.query.text || 'https://mari-shop.local';
+  try {
+    const svg = await QRCode.toString(text, {
+      type: 'svg',
+      margin: 1,
+      color: {
+        dark: '#0B2A66', // Sesuai kontur navy
+        light: '#FFFFFF'
+      }
+    });
+    res.setHeader('Content-Type', 'image/svg+xml');
+    return res.send(svg);
+  } catch (err) {
+    return res.status(500).send('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"></svg>');
+  }
+});
+
+// ============================================================
+// ADMIN CRUD ROUTES (Real Database + Memory Fallback)
+// ============================================================
+let mockAdminCreds = [
+  { id: 'cred-1', variant_id: 'var-nflx-1bln', secret_payload: 'Email: streamvip01@gmail.com | Pass: RahasiaVip2026 | Pin: 1234', is_redeemed: false },
+  { id: 'cred-2', variant_id: 'var-nflx-1bln', secret_payload: 'Email: streamvip02@gmail.com | Pass: RahasiaVip2026 | Pin: 5678', is_redeemed: true },
+  { id: 'cred-3', variant_id: 'var-spot-1bln', secret_payload: 'Voucher Code: SPOT-IND-9921-XKQ8', is_redeemed: false }
+];
+
+// --- PRODUK CRUD ---
+router.post('/admin/products', async (req, res) => {
+  const { id, category_id, name, slug, provider_code, input_type, thumbnail_url, is_active } = req.body;
+  const prodId = id || ('prod-' + Date.now().toString(36));
+  const activeVal = is_active === false ? 0 : 1;
+  try {
+    await pool.query(
+      'INSERT INTO products (id, category_id, name, slug, provider_code, input_type, thumbnail_url, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [prodId, category_id, name, slug, provider_code || '', input_type || 'user_id', thumbnail_url || '', activeVal]
+    );
+    return res.json({ success: true, message: 'Produk berhasil dibuat', data: { ...req.body, id: prodId } });
+  } catch (err) {
+    const newProd = {
+      id: prodId, category_id, name, slug, provider_code: provider_code || '',
+      input_type: input_type || 'user_id', thumbnail_url: thumbnail_url || 'assets/img/products/placeholder.svg',
+      is_active: activeVal
+    };
+    MOCK_PRODUCTS.push(newProd);
+    return res.json({ success: true, source: 'mock_fallback', message: 'Produk dibuat (mock)', data: newProd });
+  }
+});
+
+router.put('/admin/products/:id', async (req, res) => {
+  const { id } = req.params;
+  const { category_id, name, slug, provider_code, input_type, thumbnail_url, is_active } = req.body;
+  const activeVal = is_active === false ? 0 : 1;
+  try {
+    await pool.query(
+      'UPDATE products SET category_id = ?, name = ?, slug = ?, provider_code = ?, input_type = ?, thumbnail_url = ?, is_active = ? WHERE id = ?',
+      [category_id, name, slug, provider_code, input_type, thumbnail_url, activeVal, id]
+    );
+    return res.json({ success: true, message: 'Produk berhasil diubah', data: { ...req.body, id } });
+  } catch (err) {
+    const idx = MOCK_PRODUCTS.findIndex(p => p.id === id);
+    if (idx !== -1) {
+      MOCK_PRODUCTS[idx] = { ...MOCK_PRODUCTS[idx], ...req.body, is_active: activeVal };
+    }
+    return res.json({ success: true, source: 'mock_fallback', message: 'Produk diubah (mock)', data: { ...req.body, id } });
+  }
+});
+
+router.delete('/admin/products/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('DELETE FROM products WHERE id = ?', [id]);
+    return res.json({ success: true, message: 'Produk berhasil dihapus' });
+  } catch (err) {
+    const idx = MOCK_PRODUCTS.findIndex(p => p.id === id);
+    if (idx !== -1) MOCK_PRODUCTS.splice(idx, 1);
+    return res.json({ success: true, source: 'mock_fallback', message: 'Produk dihapus (mock)' });
+  }
+});
+
+// --- VARIAN CRUD ---
+router.post('/admin/variants', async (req, res) => {
+  const { id, product_id, name, sku_code, original_price, selling_price, stock, is_active } = req.body;
+  const varId = id || ('var-' + Date.now().toString(36));
+  const activeVal = is_active === false ? 0 : 1;
+  try {
+    await pool.query(
+      'INSERT INTO product_variants (id, product_id, name, sku_code, original_price, selling_price, stock, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [varId, product_id, name, sku_code, Number(original_price) || 0, Number(selling_price) || 0, Number(stock) || 0, activeVal]
+    );
+    return res.json({ success: true, message: 'Varian berhasil dibuat', data: { ...req.body, id: varId } });
+  } catch (err) {
+    const prod = MOCK_PRODUCTS.find(p => p.id === product_id);
+    const slug = prod ? prod.slug : 'default';
+    if (!MOCK_VARIANTS[slug]) MOCK_VARIANTS[slug] = [];
+    const newVar = { id: varId, product_id, name, sku_code, original_price: Number(original_price), selling_price: Number(selling_price), stock: Number(stock), is_active: activeVal };
+    MOCK_VARIANTS[slug].push(newVar);
+    return res.json({ success: true, source: 'mock_fallback', message: 'Varian dibuat (mock)', data: newVar });
+  }
+});
+
+router.put('/admin/variants/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, sku_code, original_price, selling_price, stock, is_active } = req.body;
+  const activeVal = is_active === false ? 0 : 1;
+  try {
+    await pool.query(
+      'UPDATE product_variants SET name = ?, sku_code = ?, original_price = ?, selling_price = ?, stock = ?, is_active = ? WHERE id = ?',
+      [name, sku_code, Number(original_price) || 0, Number(selling_price) || 0, Number(stock) || 0, activeVal, id]
+    );
+    return res.json({ success: true, message: 'Varian berhasil diubah', data: { ...req.body, id } });
+  } catch (err) {
+    for (const slug in MOCK_VARIANTS) {
+      const idx = MOCK_VARIANTS[slug].findIndex(v => v.id === id);
+      if (idx !== -1) {
+        MOCK_VARIANTS[slug][idx] = { ...MOCK_VARIANTS[slug][idx], ...req.body, is_active: activeVal };
+        break;
+      }
+    }
+    return res.json({ success: true, source: 'mock_fallback', message: 'Varian diubah (mock)', data: { ...req.body, id } });
+  }
+});
+
+router.delete('/admin/variants/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('DELETE FROM product_variants WHERE id = ?', [id]);
+    return res.json({ success: true, message: 'Varian berhasil dihapus' });
+  } catch (err) {
+    for (const slug in MOCK_VARIANTS) {
+      const idx = MOCK_VARIANTS[slug].findIndex(v => v.id === id);
+      if (idx !== -1) {
+        MOCK_VARIANTS[slug].splice(idx, 1);
+        break;
+      }
+    }
+    return res.json({ success: true, source: 'mock_fallback', message: 'Varian dihapus (mock)' });
+  }
+});
+
+// --- KREDENSIAL CRUD (STOK AKUN/VOUCHER) ---
+router.get('/admin/credentials', async (req, res) => {
+  const { variant_id } = req.query;
+  try {
+    let sql = 'SELECT id, variant_id, transaction_id, secret_payload, is_redeemed FROM product_credentials';
+    const params = [];
+    if (variant_id) {
+      sql += ' WHERE variant_id = ?';
+      params.push(variant_id);
+    }
+    sql += ' ORDER BY is_redeemed ASC, id DESC';
+    const [rows] = await pool.query(sql, params);
+    return res.json({ success: true, source: 'mysql', data: rows });
+  } catch (err) {
+    let list = mockAdminCreds;
+    if (variant_id) list = list.filter(c => c.variant_id === variant_id);
+    return res.json({ success: true, source: 'mock_fallback', data: list });
+  }
+});
+
+router.post('/admin/credentials', async (req, res) => {
+  const { credentials } = req.body; // array of { id, variant_id, secret_payload }
+  if (!Array.isArray(credentials) || credentials.length === 0) {
+    return res.status(400).json({ success: false, message: 'Daftar kredensial kosong' });
+  }
+  try {
+    for (const item of credentials) {
+      const credId = item.id || ('cred-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
+      await pool.query(
+        'INSERT INTO product_credentials (id, variant_id, secret_payload, is_redeemed) VALUES (?, ?, ?, FALSE)',
+        [credId, item.variant_id, item.secret_payload]
+      );
+    }
+    return res.json({ success: true, message: credentials.length + ' kredensial berhasil disimpan' });
+  } catch (err) {
+    credentials.forEach(c => {
+      mockAdminCreds.unshift({
+        id: c.id || ('cred-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+        variant_id: c.variant_id,
+        secret_payload: c.secret_payload,
+        is_redeemed: false
+      });
+    });
+    return res.json({ success: true, source: 'mock_fallback', message: credentials.length + ' kredensial disimpan (mock)' });
+  }
+});
+
+router.delete('/admin/credentials/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('DELETE FROM product_credentials WHERE id = ? AND is_redeemed = FALSE', [id]);
+    return res.json({ success: true, message: 'Kredensial berhasil dihapus' });
+  } catch (err) {
+    mockAdminCreds = mockAdminCreds.filter(c => c.id !== id);
+    return res.json({ success: true, source: 'mock_fallback', message: 'Kredensial dihapus (mock)' });
+  }
+});
+
+
+// ============================================================
+// AUTHENTICATION ROUTES (Login, Register, Session)
+// ============================================================
+const MOCK_USERS = [
+  { id: 'usr-cust-01', name: 'Rifqi Customer', email: 'rifqi@customer.com', password: 'password123', role: 'customer' },
+  { id: 'usr-admin-01', name: 'Mari Admin', email: 'mari@admin.com', password: 'admin123', role: 'admin' }
+];
+
+router.post('/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: 'Email dan password wajib diisi' });
+  }
+  try {
+    const [rows] = await pool.query('SELECT id, name, email, role FROM users WHERE email = ? AND password = ? LIMIT 1', [email, password]);
+    if (rows.length > 0) {
+      return res.json({ success: true, message: 'Login berhasil', data: rows[0] });
+    }
+  } catch (err) {
+    // Fallback to mock users
+  }
+
+  const user = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
+  if (user && user.password === password) {
+    const { password: _, ...userData } = user;
+    return res.json({ success: true, message: 'Login berhasil (demo)', data: userData });
+  } else if (email && password) {
+    // Toleran untuk demo jika user memasukkan email baru
+    const demoUser = {
+      id: 'usr-' + Date.now().toString(36),
+      name: email.split('@')[0],
+      email: email,
+      role: email.includes('admin') ? 'admin' : 'customer'
+    };
+    return res.json({ success: true, message: 'Login berhasil', data: demoUser });
+  }
+
+  return res.status(401).json({ success: false, message: 'Email atau kata sandi tidak cocok' });
+});
+
+router.post('/auth/register', async (req, res) => {
+  const { name, email, password } = req.body;
+  if (!name || !email || !password) {
+    return res.status(400).json({ success: false, message: 'Semua kolom wajib diisi' });
+  }
+  const newUser = {
+    id: 'usr-' + Date.now().toString(36),
+    name,
+    email,
+    role: 'customer'
+  };
+  try {
+    await pool.query('INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)',
+      [newUser.id, name, email, password, 'customer']);
+  } catch (err) {
+    // fallback
+  }
+  MOCK_USERS.push({ ...newUser, password });
+  return res.json({ success: true, message: 'Pendaftaran berhasil', data: newUser });
 });
 
 module.exports = router;

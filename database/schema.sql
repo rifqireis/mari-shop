@@ -6,6 +6,16 @@
 CREATE DATABASE IF NOT EXISTS db_ecommerce_topup;
 USE db_ecommerce_topup;
 
+-- 0. TABEL USERS (Pengguna & Admin)
+CREATE TABLE IF NOT EXISTS users (
+    id VARCHAR(36) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('customer', 'admin') NOT NULL DEFAULT 'customer',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 -- 1. TABEL CATEGORIES
 CREATE TABLE IF NOT EXISTS categories (
     id VARCHAR(36) PRIMARY KEY,
@@ -263,3 +273,10 @@ INSERT INTO product_credentials (id, variant_id, transaction_id, secret_payload,
 ('cred-35', 'var-apl-100', NULL, 'Kode/Akun Demo: APPLE-2-DEMO-0014', FALSE),
 ('cred-36', 'var-apl-100', NULL, 'Kode/Akun Demo: APPLE-3-DEMO-0021', FALSE)
 ON DUPLICATE KEY UPDATE secret_payload=VALUES(secret_payload);
+
+
+-- Users
+INSERT INTO users (id, name, email, password, role) VALUES
+('usr-cust-01', 'Rifqi Customer', 'rifqi@customer.com', 'password123', 'customer'),
+('usr-admin-01', 'Mari Admin', 'mari@admin.com', 'admin123', 'admin')
+ON DUPLICATE KEY UPDATE name=VALUES(name);
