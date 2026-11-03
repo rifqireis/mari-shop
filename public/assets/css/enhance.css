@@ -12,11 +12,11 @@
   --split-diag:linear-gradient(135deg,var(--accent-yellow) 0 50%,var(--blue-strong) 50% 100%);
   --stripe:repeating-linear-gradient(135deg,var(--blue-strong) 0 12px,var(--accent-yellow) 12px 24px);
 }
-html{background:#fff}
+html{background:#F4F8FD}
 body{background:transparent;background-image:none;font-size:17px;line-height:1.6;position:relative}
-/* PATTERN di belakang tampilan, opacity 60% */
+/* BACKGROUND ELEGAN & SEJUK (Tidak Melelahkan Mata) */
 body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
-  background:url(/assets/img/pattern.jpg) center top/460px auto repeat;opacity:.6}
+  background:url(/assets/img/bg-theme.jpg) center center/cover no-repeat fixed;opacity:.16}
 .container{max-width:1360px;padding:0 24px}
 .ico{width:1.35em;height:1.35em;display:inline-block;vertical-align:-.32em;flex:none}
 .ico-lg{width:56px;height:56px;flex:none}
