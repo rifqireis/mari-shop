@@ -75,3 +75,32 @@ body {
   margin: 0 auto;
   padding: 0 16px;
 }
+
+/* ============================================================
+   v1.1 — Tambahan token & aksesibilitas
+   ============================================================ */
+:root {
+  --text-success: #047857;       /* Hijau gelap: kontras >4.5:1 di atas putih */
+  --bg-hover: #FFFDF0;
+  --bg-selected: #FEF08A;
+  --bg-error: #FEF3C7;
+  --text-error: #B91C1C;
+}
+
+html { scroll-behavior: smooth; }
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+button, input, select, textarea { font-family: inherit; }
+[x-cloak] { display: none !important; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* Fokus keyboard yang jelas */
+:focus-visible { outline: 3px solid var(--accent-blue); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}

@@ -49,7 +49,7 @@
 
 .btn-danger {
   background-color: var(--accent-coral);
-  color: #FFFFFF;
+  color: var(--text-main);
 }
 
 .btn-sm {
@@ -143,8 +143,8 @@
 
 .badge-yellow { background: var(--accent-yellow); color: var(--text-main); }
 .badge-green  { background: var(--accent-green);  color: var(--text-main); }
-.badge-coral  { background: var(--accent-coral);  color: #FFFFFF; }
-.badge-blue   { background: var(--accent-blue);   color: #FFFFFF; }
+.badge-coral  { background: var(--accent-coral);  color: var(--text-main); }
+.badge-blue   { background: var(--accent-blue);   color: var(--text-main); }
 .badge-dark   { background: var(--border-color);  color: #FFFFFF; }
 
 /* --- FORM INPUTS --- */
@@ -209,3 +209,160 @@
   box-shadow: var(--shadow-md);
   transform: translate(-1px, -1px);
 }
+
+/* ============================================================
+   v1.1 — KOMPONEN TAMBAHAN
+   ============================================================ */
+
+/* --- Hover hanya untuk perangkat dengan kursor (cegah "nyangkut" di layar sentuh) --- */
+@media (hover: none) {
+  .btn:hover { transform: none; box-shadow: var(--shadow-md); }
+  .btn-sm:hover { box-shadow: var(--shadow-sm); }
+  .product-card:hover, .category-tab:hover, .variant-card:hover { transform: none; box-shadow: var(--shadow-sm); }
+}
+
+/* --- Tombol --- */
+.btn-lg { padding: 16px 28px; font-size: 17px; }
+.btn-block { width: 100%; }
+.btn-blue { background-color: var(--accent-blue); color: var(--text-main); }
+.btn[disabled], .btn.is-disabled {
+  opacity: .55; cursor: not-allowed;
+  transform: none !important; box-shadow: var(--shadow-sm) !important;
+}
+
+/* --- Badge tambahan --- */
+.badge-purple { background: var(--accent-purple); color: var(--text-main); }
+.badge-pink   { background: var(--accent-pink);   color: var(--text-main); }
+.badge-orange { background: var(--accent-orange); color: var(--text-main); }
+
+/* --- Utilitas teks --- */
+.text-mono { font-family: var(--font-family-mono); }
+.text-muted { color: var(--text-muted); }
+.text-success { color: var(--text-success); }
+.text-danger { color: var(--text-error); }
+.fw-800 { font-weight: 800; }
+
+/* --- Form: select, hint, error, shake --- */
+select.brutal-input {
+  appearance: none; cursor: pointer; padding-right: 40px;
+  background-image: linear-gradient(45deg, transparent 50%, #121212 50%), linear-gradient(135deg, #121212 50%, transparent 50%);
+  background-position: calc(100% - 20px) 50%, calc(100% - 14px) 50%;
+  background-size: 6px 6px; background-repeat: no-repeat;
+}
+textarea.brutal-input { resize: vertical; min-height: 120px; font-family: var(--font-family-mono); font-size: 13px; }
+.brutal-input::placeholder { color: #8A8A8A; }
+.form-hint { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 6px; }
+.form-error {
+  display: none; margin-top: 8px; padding: 5px 10px;
+  background: var(--bg-error); color: var(--text-error);
+  border-left: 4px solid var(--state-danger); border-radius: 6px;
+  font-size: 12px; font-weight: 700;
+}
+.has-error .form-error { display: block; }
+.has-error .brutal-input { border-color: var(--state-danger); background: var(--bg-error); }
+.has-error.variant-grid, .has-error .variant-grid, .has-error .payment-group { outline: 3px dashed var(--state-danger); outline-offset: 4px; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); } 20% { transform: translateX(-7px); }
+  40% { transform: translateX(7px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); }
+}
+.shake { animation: shake .3s; }
+
+/* --- Step header (kartu bernomor) --- */
+.step-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.step-num {
+  flex: none; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--accent-yellow); border: var(--border-width) solid var(--border-color);
+  box-shadow: var(--shadow-sm); display: grid; place-items: center;
+  font-family: var(--font-family-heading); font-weight: 800;
+}
+.step-title { font-family: var(--font-family-heading); font-weight: 700; font-size: 20px; line-height: 1.3; }
+
+/* --- Selector varian --- */
+.variant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.variant-card {
+  position: relative; text-align: left; font: inherit; color: inherit;
+  border: var(--border-width) solid var(--border-color); border-radius: var(--border-radius-md);
+  background: var(--bg-card); padding: 14px; cursor: pointer; box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+.variant-card:hover { transform: translate(-2px, -2px); box-shadow: var(--shadow-md); background-color: var(--bg-hover); }
+.variant-card:active { transform: translate(1px, 1px); box-shadow: var(--shadow-active); }
+.variant-card.selected { background-color: var(--accent-yellow); box-shadow: var(--shadow-md); transform: translate(-2px, -2px); }
+.variant-card.selected::after {
+  content: "✓"; position: absolute; top: 8px; right: 8px; width: 22px; height: 22px;
+  background: var(--border-color); color: #FFF; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900;
+}
+.variant-card.soldout { opacity: .5; cursor: not-allowed; background: var(--bg-muted); transform: none; box-shadow: none; }
+.variant-name { font-weight: 700; font-size: 14px; margin-bottom: 6px; padding-right: 22px; }
+.variant-price { font-family: var(--font-family-mono); font-weight: 800; font-size: 15px; }
+.variant-old { font-family: var(--font-family-mono); font-size: 12px; color: var(--text-muted); text-decoration: line-through; }
+.variant-stock { font-size: 11px; font-weight: 700; margin-top: 6px; }
+
+/* --- Metode pembayaran (accordion) --- */
+.payment-group { border: var(--border-width) solid var(--border-color); border-radius: var(--border-radius-md); background: var(--bg-card); margin-bottom: 12px; overflow: hidden; }
+.payment-group-header {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; text-align: left;
+  padding: 12px 16px; background: var(--bg-muted); border: 0; cursor: pointer; color: inherit;
+  font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .5px;
+}
+.payment-group.open .payment-group-header { border-bottom: 2px solid var(--border-color); }
+.payment-item {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; text-align: left;
+  padding: 14px 16px; border: 0; border-bottom: 1px solid #E5E5E5; background: transparent; color: inherit;
+  font-size: 14px; font-weight: 600; cursor: pointer; transition: background var(--transition-fast);
+}
+.payment-item:last-child { border-bottom: 0; }
+.payment-item:hover { background: #FDF9E7; }
+.payment-item.selected { background: var(--bg-selected); font-weight: 800; }
+.payment-fee { font-family: var(--font-family-mono); font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+/* --- Stiker dekoratif --- */
+.sticker {
+  display: inline-flex; align-items: center; justify-content: center; text-align: center;
+  font-family: var(--font-family-heading); font-weight: 800; font-size: 12px; line-height: 1.1;
+  padding: 6px 10px; border: 2px solid var(--border-color); box-shadow: var(--shadow-sm);
+  background: var(--accent-pink); color: var(--text-main); transform: rotate(-5deg);
+}
+.sticker-round { width: 74px; height: 74px; border-radius: 50%; font-size: 11px; }
+.sticker-sparkle { font-size: 34px; border: 0; box-shadow: none; background: none; padding: 0; }
+
+/* --- Tabel --- */
+.table-wrap { overflow-x: auto; border: var(--border-width) solid var(--border-color); border-radius: var(--border-radius-md); background: #FFF; }
+.brutal-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.brutal-table th { background: var(--accent-yellow); text-align: left; padding: 10px 14px; border-bottom: var(--border-width) solid var(--border-color); font-family: var(--font-family-heading); white-space: nowrap; }
+.brutal-table td { padding: 10px 14px; border-bottom: 1px solid #E5E5E5; vertical-align: middle; }
+.brutal-table tr:last-child td { border-bottom: 0; }
+.brutal-table tr.is-off td { opacity: .5; }
+
+/* --- Modal --- */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(18, 18, 18, .55); z-index: 500; display: grid; place-items: center; padding: 16px; overflow-y: auto; }
+.modal-box { width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto; }
+
+/* --- Skeleton, empty state --- */
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+.skeleton { background: var(--bg-muted); border: var(--border-width) solid var(--border-color); border-radius: var(--border-radius-md); animation: pulse 1.2s infinite; min-height: 220px; }
+.empty-state { text-align: center; padding: 56px 20px; }
+.empty-state .emoji { font-size: 42px; margin-bottom: 8px; }
+
+/* --- Kotak salin (VA, kredensial, voucher) --- */
+.copy-box { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: var(--bg-muted); border: var(--border-width) solid var(--border-color); border-radius: var(--border-radius-md); padding: 12px 14px; }
+.copy-value { font-family: var(--font-family-mono); font-weight: 800; font-size: 18px; word-break: break-all; }
+
+/* --- Segmented tabs --- */
+.seg { display: inline-flex; border: var(--border-width) solid var(--border-color); border-radius: var(--border-radius-md); overflow: hidden; box-shadow: var(--shadow-sm); background: #FFF; }
+.seg button { border: 0; background: transparent; padding: 10px 16px; font-family: var(--font-family-heading); font-weight: 700; font-size: 13px; cursor: pointer; color: inherit; }
+.seg button + button { border-left: var(--border-width) solid var(--border-color); }
+.seg button.active { background: var(--accent-yellow); }
+
+/* --- FAQ --- */
+.faq details { border: var(--border-width) solid var(--border-color); border-radius: var(--border-radius-md); background: #FFF; box-shadow: var(--shadow-sm); margin-bottom: 12px; }
+.faq summary { padding: 14px 18px; font-family: var(--font-family-heading); font-weight: 700; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font-weight: 800; font-size: 20px; line-height: 1; }
+.faq details[open] summary { background: var(--accent-yellow); border-bottom: var(--border-width) solid var(--border-color); border-radius: 7px 7px 0 0; }
+.faq details[open] summary::after { content: "–"; }
+.faq details p { padding: 14px 18px; font-size: 14px; font-weight: 500; }
+
+/* Toast: dukung aria-live */
+#toast-container { pointer-events: none; }

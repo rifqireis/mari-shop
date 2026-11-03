@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top Up — Mari Shop</title>
+  <meta name="description" content="Checkout top up di Mari Shop.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/brutal-components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/pages.css">
+  <link rel="stylesheet" href="/assets/css/enhance.css">
+  <script defer src="assets/js/main.js"></script>
+  <script defer src="assets/js/copy-clipboard.js"></script>
+  <script defer src="assets/js/order-flow.js"></script>
+  <!-- Alpine.js dilayani lokal oleh server (npm install). Harus paling akhir. -->
+  <script defer src="/vendor/alpine/cdn.min.js"></script>
+</head>
+<body x-data="orderFlow()" x-init="init()">
+  <header class="navbar">
+    <div class="container nav-wrapper">
+      <a href="index.html" class="logo"><span class="logo-mark">MARI</span><span>SHOP</span></a>
+      <form class="nav-search" action="index.html" method="get" role="search">
+        <label for="navSearch" class="sr-only">Cari produk</label>
+        <input id="navSearch" name="q" type="search" class="brutal-input" placeholder="Cari game, pulsa, atau akun premium..." autocomplete="off">
+      </form>
+      <nav class="nav-links" aria-label="Navigasi utama">
+        <a href="index.html#katalog" class="btn btn-secondary btn-sm nav-opt"><img class="ico" src="/assets/img/icons/bag.svg" alt="" aria-hidden="true"> Kategori</a>
+        <a href="index.html#bantuan" class="btn btn-secondary btn-sm nav-opt"><img class="ico" src="/assets/img/icons/chat.svg" alt="" aria-hidden="true"> Bantuan</a>
+        <a href="check-order.html" class="btn btn-primary btn-sm"><img class="ico" src="/assets/img/icons/receipt.svg" alt="" aria-hidden="true"> Cek Pesanan</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container page-main order-page">
+    <nav class="section-sub" aria-label="Breadcrumb" style="margin-bottom:16px;"><a href="index.html">Beranda</a> / <span x-text="product ? product.name : 'Checkout'"></span></nav>
+
+    <div class="brutal-card" x-show="loading" aria-busy="true"><div class="skeleton" style="min-height:140px; border:0;"></div></div>
+
+    <div class="brutal-card empty-state" x-show="!loading && notFound" x-cloak>
+      <img class="empty-ico" src="/assets/img/icons/search.svg" alt="" aria-hidden="true">
+      <h1 class="section-title" style="font-size:22px;">Produk tidak ditemukan</h1>
+      <p class="section-sub" style="margin-bottom:16px;">Link produk salah atau produk sudah tidak tersedia.</p>
+      <a href="index.html" class="btn btn-primary">Kembali ke Beranda</a>
+    </div>
+
+    <div class="brutal-card empty-state" x-show="!loading && error" x-cloak>
+      <img class="empty-ico" src="/assets/img/icons/plug.svg" alt="" aria-hidden="true">
+      <h1 class="section-title" style="font-size:22px;">Gagal memuat produk</h1>
+      <p class="section-sub" x-text="error" style="margin-bottom:16px;"></p>
+      <button type="button" class="btn btn-primary" onclick="location.reload()">Muat Ulang</button>
+    </div>
+
+    <template x-if="product">
+      <div class="order-layout">
+        <div class="order-steps">
+          <!-- Header produk -->
+          <section class="brutal-card product-hero">
+            <img :src="thumbUrl(product.thumbnail_url)" @error="imgFallback($event)" :alt="'Logo ' + product.name" width="88" height="88">
+            <div>
+              <span class="badge badge-yellow" x-text="product.provider_code"></span>
+              <h1 x-text="product.name" style="margin-top:6px;"></h1>
+            </div>
+          </section>
+
+          <!-- 1. Data akun -->
+          <section class="brutal-card" x-show="needsAccount">
+            <div class="step-head"><span class="step-num">1</span><h2 class="step-title">Masukkan Data Akun</h2></div>
+            <div class="field-row">
+              <div :class="{ 'has-error': errors.account }">
+                <label class="sr-only" for="account" x-text="accountLabel"></label>
+                <input id="account" class="brutal-input" :placeholder="accountPlaceholder" x-model="form.account" inputmode="numeric" autocomplete="off" @input="delete errors.account">
+                <div class="form-error" x-text="errors.account"></div>
+              </div>
+              <div x-show="needsZone" :class="{ 'has-error': errors.zone }">
+                <label class="sr-only" for="zone">Zone ID / Server</label>
+                <input id="zone" class="brutal-input" placeholder="Zone / Server" x-model="form.zone" autocomplete="off" @input="delete errors.zone">
+                <div class="form-error" x-text="errors.zone"></div>
+              </div>
+            </div>
+            <div class="guide-box" x-text="guideText"></div>
+          </section>
+          <section class="brutal-card" x-show="!needsAccount">
+            <div class="step-head"><span class="step-num">1</span><h2 class="step-title">Pengiriman Produk</h2></div>
+            <div class="guide-box" style="margin-top:0;">Produk ini berupa akun/voucher digital. Detailnya akan tampil di halaman invoice setelah pembayaran lunas.</div>
+          </section>
+
+          <!-- 2. Varian -->
+          <section class="brutal-card" :class="{ 'has-error': errors.variant }">
+            <div class="step-head"><span class="step-num">2</span><h2 class="step-title">Pilih Nominal</h2></div>
+            <div class="variant-grid" role="radiogroup" aria-label="Pilih nominal">
+              <template x-for="v in variants" :key="v.id">
+                <button type="button" role="radio" :aria-checked="selectedVariantId === v.id" class="variant-card"
+                        :class="{ 'selected': selectedVariantId === v.id, 'soldout': Number(v.stock) <= 0 }"
+                        :disabled="Number(v.stock) <= 0" @click="selectVariant(v)">
+                  <div class="variant-name" x-text="v.name"></div>
+                  <div class="variant-price" x-text="formatRupiah(v.selling_price)"></div>
+                  <div class="variant-old" x-show="Number(v.original_price) > Number(v.selling_price)" x-text="formatRupiah(v.original_price)"></div>
+                  <div class="variant-stock" :class="stockLabel(v).cls" x-text="stockLabel(v).text"></div>
+                </button>
+              </template>
+            </div>
+            <p class="section-sub" x-show="variants.length === 0">Belum ada nominal tersedia untuk produk ini.</p>
+            <div class="form-error" x-text="errors.variant"></div>
+          </section>
+
+          <!-- 3. Pembayaran -->
+          <section class="brutal-card" :class="{ 'has-error': errors.payment }">
+            <div class="step-head"><span class="step-num">3</span><h2 class="step-title">Metode Pembayaran</h2></div>
+            <template x-for="g in paymentGroups" :key="g.type">
+              <div class="payment-group" :class="{ 'open': openGroup === g.type }">
+                <button type="button" class="payment-group-header" :aria-expanded="openGroup === g.type" @click="toggleGroup(g.type)">
+                  <span><img class="ico" :src="'/assets/img/icons/' + g.icon + '.svg'" alt="" aria-hidden="true"> <span x-text="g.title"></span></span><span x-text="openGroup === g.type ? '▲' : '▼'" aria-hidden="true"></span>
+                </button>
+                <div x-show="openGroup === g.type">
+                  <template x-for="p in g.items" :key="p.id">
+                    <button type="button" class="payment-item" :class="{ 'selected': selectedPaymentId === p.id }" @click="selectPayment(p)">
+                      <span x-text="(selectedPaymentId === p.id ? '✓ ' : '') + p.name"></span>
+                      <span class="payment-fee" x-text="feeLabel(p)"></span>
+                    </button>
+                  </template>
+                </div>
+              </div>
+            </template>
+            <div class="form-error" x-text="errors.payment"></div>
+          </section>
+
+          <!-- 4. Kontak -->
+          <section class="brutal-card">
+            <div class="step-head"><span class="step-num">4</span><h2 class="step-title">Kontak Kamu</h2></div>
+            <div :class="{ 'has-error': errors.contact }">
+              <label class="sr-only" for="contact">Nomor WhatsApp atau email</label>
+              <input id="contact" class="brutal-input" placeholder="Nomor WhatsApp (08xx) atau email" x-model="form.contact" autocomplete="tel" @input="delete errors.contact">
+              <div class="form-hint">Dipakai untuk melacak pesanan di menu Cek Pesanan.</div>
+              <div class="form-error" x-text="errors.contact"></div>
+            </div>
+          </section>
+        </div>
+
+        <!-- RINGKASAN -->
+        <aside class="order-summary" aria-label="Ringkasan pesanan">
+          <div class="brutal-card">
+            <h2 class="step-title" style="margin-bottom:12px;">Ringkasan Pesanan</h2>
+            <template x-if="selectedVariant">
+              <div>
+                <div class="sum-row"><span x-text="product.name"></span></div>
+                <div class="sum-row"><span x-text="selectedVariant.name"></span><span class="mono" x-text="formatRupiah(basePrice)"></span></div>
+                <div class="sum-row"><span>Biaya layanan <span class="text-muted" x-show="!selectedPayment">(pilih metode)</span></span><span class="mono" x-text="formatRupiah(feeAmount)"></span></div>
+                <div class="sum-row total"><span>Total</span><span class="mono" x-text="formatRupiah(totalAmount)"></span></div>
+                <div class="sum-save badge badge-green" x-show="saving > 0">Hemat <span x-text="formatRupiah(saving)"></span></div>
+              </div>
+            </template>
+            <div class="sum-placeholder" x-show="!selectedVariant">Pilih nominal untuk melihat total harga.</div>
+
+            <div class="summary-cta" style="margin-top:18px;">
+              <div class="form-error" style="display:block;" x-show="submitError" x-text="submitError"></div>
+              <button type="button" class="btn btn-primary btn-lg btn-block" :disabled="submitting" @click="submit()" x-text="submitting ? 'Memproses...' : 'Beli Sekarang'"></button>
+              <p class="form-hint" style="text-align:center; margin-top:10px;"><img class="ico" src="/assets/img/icons/lock.svg" alt="" aria-hidden="true"> Dengan membeli, kamu menyetujui bahwa data tujuan sudah benar.</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </template>
+  </main>
+
+  <!-- Bar bawah (mobile) -->
+  <div class="mobile-bar" x-show="product" x-cloak>
+    <div><div class="section-sub" style="font-size:11px;">Total</div><div class="fw-800 text-mono" x-text="selectedVariant ? formatRupiah(totalAmount) : '—'"></div></div>
+    <button type="button" class="btn btn-primary" :disabled="submitting" @click="submit()" x-text="submitting ? 'Memproses...' : 'Beli Sekarang'"></button>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="footer-title">MARI SHOP</div>
+        <p class="footer-text">Top up game, pulsa, dan akun premium. Proses cepat, harga jelas, tanpa ribet.</p>
+      </div>
+      <div>
+        <div class="footer-h">Metode Bayar</div>
+        <div class="footer-pay">
+          <span class="badge badge-yellow">QRIS</span><span class="badge badge-blue">BCA VA</span><span class="badge badge-blue">BRI VA</span><span class="badge badge-pink">DANA</span><span class="badge badge-green">GOPAY</span>
+        </div>
+      </div>
+      <div>
+        <div class="footer-h">Menu</div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="check-order.html">Cek Pesanan</a>
+          <a href="index.html#bantuan">Bantuan &amp; FAQ</a>
+          <a href="admin/index.html">Panel Admin</a>
+        </nav>
+      </div>
+    </div>
+    <div class="container footer-note">Proyek Tugas Besar Pengantar Basis Data (Kelas A1) · Data transaksi bersifat simulasi untuk demo.</div>
+  </footer>
+</body>
+</html>
