@@ -17,6 +17,9 @@ app.use(express.urlencoded({ extended: true }));
 // Sajikan berkas statis Frontend (HTML, CSS, JS) dari folder public/
 app.use(express.static(path.join(__dirname, '../public')));
 
+// Alpine.js dilayani lokal dari node_modules (tidak bergantung CDN saat presentasi)
+app.use('/vendor/alpine', express.static(path.join(__dirname, '../node_modules/alpinejs/dist')));
+
 // Routing API
 app.use('/api', apiRoutes);
 

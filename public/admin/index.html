@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Produk &amp; Varian</title>
+  <meta name="description" content="Panel admin Mari Shop.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/brutal-components.css">
+  <link rel="stylesheet" href="../assets/css/layout.css">
+  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="/assets/css/enhance.css">
+  <script defer src="../assets/js/main.js"></script>
+  <script defer src="../assets/js/copy-clipboard.js"></script>
+  <script defer src="../assets/js/admin.js"></script>
+  <!-- Alpine.js dilayani lokal oleh server (npm install). Harus paling akhir. -->
+  <script defer src="/vendor/alpine/cdn.min.js"></script>
+</head>
+<body x-data="adminProducts()" x-init="init()">
+  <header class="admin-bar">
+    <div class="container nav-wrapper">
+      <a href="index.html" class="logo"><span class="logo-mark">ADMIN</span><span>Mari Shop</span></a>
+      <nav class="admin-nav" aria-label="Menu admin">
+        <a href="index.html" class="btn btn-sm btn-primary"><img class="ico" src="/assets/img/icons/bag.svg" alt="" aria-hidden="true"> Produk &amp; Varian</a>
+        <a href="credentials.html" class="btn btn-sm btn-secondary"><img class="ico" src="/assets/img/icons/key.svg" alt="" aria-hidden="true"> Stok Kredensial</a>
+        <a href="../index.html" class="btn btn-sm btn-secondary">← Ke Toko</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container page-main">
+    <div class="demo-banner"><img class="ico" src="/assets/img/icons/sparkle.svg" alt="" aria-hidden="true"> <strong>Mode UI Demo.</strong> Data dibaca dari API publik, tetapi perubahan hanya tersimpan di browser dan hilang saat halaman dimuat ulang, sampai endpoint admin dipasang oleh Mari.
+      <details style="margin-top:8px;"><summary style="cursor:pointer; font-weight:800;">Endpoint yang dibutuhkan</summary>
+        <div class="endpoint-list">POST/PUT/DELETE /api/admin/products[/:id]<br>POST/PUT/DELETE /api/admin/variants[/:id]</div></details></div>
+
+    <div class="brutal-card empty-state" x-show="error" x-cloak><img class="empty-ico" src="/assets/img/icons/plug.svg" alt="" aria-hidden="true"><p x-text="error"></p></div>
+    <div class="bento-stats" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); margin-top:18px;" x-show="!loading && !error" x-cloak>
+      <template x-for="s in stats" :key="s.l"><div class="stat-box"><div class="stat-val" x-text="s.v"></div><div class="stat-lbl" x-text="s.l"></div></div></template>
+    </div>
+
+    <div class="admin-head" x-show="!error">
+      <div class="seg" role="tablist">
+        <button type="button" role="tab" :class="{ 'active': tab === 'products' }" @click="tab = 'products'">Produk</button>
+        <button type="button" role="tab" :class="{ 'active': tab === 'variants' }" @click="tab = 'variants'">Varian</button>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <select class="brutal-input" style="width:auto;" x-show="tab === 'variants'" x-model="filterProduct" aria-label="Filter produk">
+          <option value="">Semua produk</option>
+          <template x-for="p in products" :key="p.id"><option :value="p.id" x-text="p.name"></option></template>
+        </select>
+        <button type="button" class="btn btn-primary" x-show="tab === 'products'" @click="openProduct(null)">+ Produk Baru</button>
+        <button type="button" class="btn btn-primary" x-show="tab === 'variants'" @click="openVariant(null)">+ Varian Baru</button>
+      </div>
+    </div>
+
+    <div class="skeleton" x-show="loading"></div>
+
+    <!-- Tabel produk -->
+    <div class="table-wrap" x-show="!loading && !error && tab === 'products'" x-cloak>
+      <table class="brutal-table">
+        <thead><tr><th></th><th>Nama</th><th>Kategori</th><th>Provider</th><th>Input</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody>
+          <template x-for="p in products" :key="p.id">
+            <tr :class="{ 'is-off': !p.is_active }">
+              <td><img class="td-thumb" :src="thumbUrl(p.thumbnail_url)" @error="imgFallback($event)" alt=""></td>
+              <td><strong x-text="p.name"></strong><div class="text-muted text-mono" style="font-size:11px;" x-text="p.slug"></div></td>
+              <td x-text="catName(p.category_id)"></td>
+              <td x-text="p.provider_code"></td>
+              <td><span class="badge badge-blue" x-text="p.input_type"></span></td>
+              <td><span class="badge" :class="p.is_active ? 'badge-green' : 'badge-coral'" x-text="p.is_active ? 'AKTIF' : 'NONAKTIF'"></span></td>
+              <td><div class="row-actions">
+                <button type="button" class="btn btn-secondary btn-sm" @click="openProduct(p)">Edit</button>
+                <button type="button" class="btn btn-secondary btn-sm" @click="toggleProduct(p)" x-text="p.is_active ? 'Nonaktifkan' : 'Aktifkan'"></button>
+                <button type="button" class="btn btn-danger btn-sm" @click="removeProduct(p)">Hapus</button>
+              </div></td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tabel varian -->
+    <div class="table-wrap" x-show="!loading && !error && tab === 'variants'" x-cloak>
+      <table class="brutal-table">
+        <thead><tr><th>Produk</th><th>Varian</th><th>SKU</th><th>Harga Jual</th><th>Stok</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody>
+          <template x-for="v in shownVariants" :key="v.id">
+            <tr :class="{ 'is-off': !v.is_active }">
+              <td x-text="prodName(v.product_id)"></td>
+              <td><strong x-text="v.name"></strong></td>
+              <td class="text-mono" x-text="v.sku_code"></td>
+              <td class="text-mono"><div x-text="rp(v.selling_price)"></div><div class="text-muted" style="font-size:11px; text-decoration:line-through;" x-text="rp(v.original_price)"></div></td>
+              <td><span class="badge" :class="Number(v.stock) <= 0 ? 'badge-coral' : (Number(v.stock) <= 10 ? 'badge-yellow' : 'badge-green')" x-text="v.stock"></span></td>
+              <td><span class="badge" :class="v.is_active ? 'badge-green' : 'badge-coral'" x-text="v.is_active ? 'AKTIF' : 'NONAKTIF'"></span></td>
+              <td><div class="row-actions">
+                <button type="button" class="btn btn-secondary btn-sm" @click="openVariant(v)">Edit</button>
+                <button type="button" class="btn btn-secondary btn-sm" @click="toggleVariant(v)" x-text="v.is_active ? 'Nonaktifkan' : 'Aktifkan'"></button>
+                <button type="button" class="btn btn-danger btn-sm" @click="removeVariant(v)">Hapus</button>
+              </div></td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-backdrop" x-show="modal" x-cloak @keydown.escape.window="modal = null" @click.self="modal = null">
+      <template x-if="modal">
+        <form class="brutal-card modal-box" @submit.prevent="save()" role="dialog" aria-modal="true">
+          <h2 class="step-title" style="margin-bottom:16px;" x-text="(modal.editing ? 'Edit ' : 'Tambah ') + (modal.type === 'product' ? 'Produk' : 'Varian')"></h2>
+
+          <template x-if="modal.type === 'product'">
+            <div style="display:grid; gap:14px;">
+              <div :class="{ 'has-error': errors.name }"><label class="form-hint">Nama produk</label><input class="brutal-input" x-model="modal.form.name"><div class="form-error" x-text="errors.name"></div></div>
+              <div :class="{ 'has-error': errors.slug }"><label class="form-hint">Slug (kosongkan = otomatis)</label><input class="brutal-input" x-model="modal.form.slug"><div class="form-error" x-text="errors.slug"></div></div>
+              <div><label class="form-hint">Kategori</label><select class="brutal-input" x-model="modal.form.category_id"><template x-for="c in categories" :key="c.id"><option :value="c.id" x-text="c.name"></option></template></select></div>
+              <div><label class="form-hint">Kode provider</label><input class="brutal-input" x-model="modal.form.provider_code"></div>
+              <div><label class="form-hint">Tipe input pembeli</label>
+                <select class="brutal-input" x-model="modal.form.input_type">
+                  <option value="user_id">user_id — User ID</option><option value="user_id_zone">user_id_zone — User ID + Zone</option>
+                  <option value="phone_number">phone_number — Nomor HP</option><option value="account_id">account_id — Nomor meter/ID</option>
+                  <option value="contact_only">contact_only — Akun/voucher (tanpa ID)</option>
+                </select></div>
+              <div><label class="form-hint">URL thumbnail</label><input class="brutal-input" x-model="modal.form.thumbnail_url" placeholder="assets/img/products/nama.svg"></div>
+              <label class="checkbox-row"><input type="checkbox" x-model="modal.form.is_active"> Produk aktif</label>
+            </div>
+          </template>
+
+          <template x-if="modal.type === 'variant'">
+            <div style="display:grid; gap:14px;">
+              <div><label class="form-hint">Produk</label><select class="brutal-input" x-model="modal.form.product_id"><template x-for="p in products" :key="p.id"><option :value="p.id" x-text="p.name"></option></template></select></div>
+              <div :class="{ 'has-error': errors.name }"><label class="form-hint">Nama varian</label><input class="brutal-input" x-model="modal.form.name"><div class="form-error" x-text="errors.name"></div></div>
+              <div :class="{ 'has-error': errors.sku_code }"><label class="form-hint">Kode SKU</label><input class="brutal-input text-mono" x-model="modal.form.sku_code"><div class="form-error" x-text="errors.sku_code"></div></div>
+              <div class="field-row" style="grid-template-columns:1fr 1fr;">
+                <div :class="{ 'has-error': errors.original_price }"><label class="form-hint">Harga coret</label><input type="number" min="0" class="brutal-input" x-model="modal.form.original_price"><div class="form-error" x-text="errors.original_price"></div></div>
+                <div :class="{ 'has-error': errors.selling_price }"><label class="form-hint">Harga jual</label><input type="number" min="0" class="brutal-input" x-model="modal.form.selling_price"><div class="form-error" x-text="errors.selling_price"></div></div>
+              </div>
+              <div :class="{ 'has-error': errors.stock }"><label class="form-hint">Stok</label><input type="number" min="0" class="brutal-input" x-model="modal.form.stock"><div class="form-error" x-text="errors.stock"></div></div>
+              <label class="checkbox-row"><input type="checkbox" x-model="modal.form.is_active"> Varian aktif</label>
+            </div>
+          </template>
+
+          <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end;">
+            <button type="button" class="btn btn-secondary" @click="modal = null">Batal</button>
+            <button type="submit" class="btn btn-primary">Simpan</button>
+          </div>
+        </form>
+      </template>
+    </div>
+  </main>
+</body>
+</html>

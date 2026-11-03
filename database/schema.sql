@@ -117,11 +117,11 @@ ON DUPLICATE KEY UPDATE name=VALUES(name);
 
 -- Produk Sampel
 INSERT INTO products (id, category_id, name, slug, provider_code, input_type, thumbnail_url, is_active) VALUES
-('prod-mlbb', 'cat-game', 'Mobile Legends: Bang Bang', 'mobile-legends', 'MOONTON', 'user_id_zone', 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=200&h=200&fit=crop', TRUE),
-('prod-ff', 'cat-game', 'Free Fire MAX', 'free-fire', 'GARENA', 'user_id', 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=200&h=200&fit=crop', TRUE),
-('prod-tksel', 'cat-pulsa', 'Telkomsel Data & Pulsa', 'telkomsel', 'TELKOMSEL', 'phone_number', 'https://images.unsplash.com/photo-1563770660941-20978e870e26?w=200&h=200&fit=crop', TRUE),
-('prod-netflix', 'cat-app', 'Netflix Premium 4K UHD', 'netflix-premium', 'NETFLIX', 'contact_only', 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=200&h=200&fit=crop', TRUE),
-('prod-spotify', 'cat-app', 'Spotify Individual Premium', 'spotify-premium', 'SPOTIFY', 'contact_only', 'https://images.unsplash.com/photo-1614680376593-902f749f7ffc?w=200&h=200&fit=crop', TRUE)
+('prod-mlbb', 'cat-game', 'Mobile Legends: Bang Bang', 'mobile-legends', 'MOONTON', 'user_id_zone', 'assets/img/products/mobile-legends.svg', TRUE),
+('prod-ff', 'cat-game', 'Free Fire MAX', 'free-fire', 'GARENA', 'user_id', 'assets/img/products/free-fire.svg', TRUE),
+('prod-tksel', 'cat-pulsa', 'Telkomsel Data & Pulsa', 'telkomsel', 'TELKOMSEL', 'phone_number', 'assets/img/products/telkomsel.svg', TRUE),
+('prod-netflix', 'cat-app', 'Netflix Premium 4K UHD', 'netflix-premium', 'NETFLIX', 'contact_only', 'assets/img/products/netflix-premium.svg', TRUE),
+('prod-spotify', 'cat-app', 'Spotify Individual Premium', 'spotify-premium', 'SPOTIFY', 'contact_only', 'assets/img/products/spotify-premium.svg', TRUE)
 ON DUPLICATE KEY UPDATE name=VALUES(name);
 
 -- Varian Produk Sampel
@@ -140,4 +140,126 @@ INSERT INTO product_credentials (id, variant_id, transaction_id, secret_payload,
 ('cred-1', 'var-nflx-1bln', NULL, 'Email: streamvip01@gmail.com | Pass: RahasiaVip2026 | Pin: 1234', FALSE),
 ('cred-2', 'var-nflx-1bln', NULL, 'Email: streamvip02@gmail.com | Pass: RahasiaVip2026 | Pin: 5678', FALSE),
 ('cred-3', 'var-spot-1bln', NULL, 'Voucher Code: SPOT-IND-9921-XKQ8', FALSE)
+ON DUPLICATE KEY UPDATE secret_payload=VALUES(secret_payload);
+
+-- ------------------------------------------------------------
+-- TAMBAHAN SEEDER v1.1 (melengkapi tiap kategori agar tab tidak kosong saat demo)
+-- ------------------------------------------------------------
+INSERT INTO products (id, category_id, name, slug, provider_code, input_type, thumbnail_url, is_active) VALUES
+('prod-genshin', 'cat-game', 'Genshin Impact', 'genshin-impact', 'HOYOVERSE', 'user_id_zone', 'assets/img/products/genshin-impact.svg', TRUE),
+('prod-tri', 'cat-pulsa', 'Tri (3) Data & Pulsa', 'tri-data', 'TRI', 'phone_number', 'assets/img/products/tri-data.svg', TRUE),
+('prod-gplay', 'cat-voucher', 'Google Play Gift Card', 'google-play', 'GOOGLE', 'contact_only', 'assets/img/products/google-play.svg', TRUE),
+('prod-pln', 'cat-pajak', 'Token Listrik PLN', 'pln-token', 'PLN', 'account_id', 'assets/img/products/pln-token.svg', TRUE)
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO product_variants (id, product_id, name, sku_code, original_price, selling_price, stock, is_active) VALUES
+('var-gi-60', 'prod-genshin', '60 Genesis Crystals', 'GI-60GC', 16000, 15000, 999, TRUE),
+('var-gi-330', 'prod-genshin', '330 Genesis Crystals', 'GI-330GC', 79000, 75000, 999, TRUE),
+('var-gi-welkin', 'prod-genshin', 'Blessing of the Welkin Moon', 'GI-WELKIN', 79000, 72000, 999, TRUE),
+('var-tri-pulsa10', 'prod-tri', 'Pulsa 10.000', 'TRI-P10', 12000, 11000, 999, TRUE),
+('var-tri-5gb', 'prod-tri', 'Kuota 5 GB 30 Hari', 'TRI-5GB', 25000, 22000, 999, TRUE),
+('var-gp-50', 'prod-gplay', 'Gift Card Rp 50.000', 'GP-50K', 52000, 52000, 20, TRUE),
+('var-gp-100', 'prod-gplay', 'Gift Card Rp 100.000', 'GP-100K', 102000, 102000, 0, TRUE),
+('var-pln-20', 'prod-pln', 'Token 20.000', 'PLN-20K', 22500, 22500, 999, TRUE),
+('var-pln-50', 'prod-pln', 'Token 50.000', 'PLN-50K', 52500, 52500, 999, TRUE),
+('var-pln-100', 'prod-pln', 'Token 100.000', 'PLN-100K', 102500, 102500, 999, TRUE)
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO product_credentials (id, variant_id, transaction_id, secret_payload, is_redeemed) VALUES
+('cred-4', 'var-gp-50', NULL, 'Voucher Code: GPLAY-50K-7QX2-LM91', FALSE)
+ON DUPLICATE KEY UPDATE secret_payload=VALUES(secret_payload);
+
+
+-- ------------------------------------------------------------
+-- TAMBAHAN SEEDER v2.0 (katalog diperluas: lebih banyak produk & varian per kategori)
+-- ------------------------------------------------------------
+INSERT INTO products (id, category_id, name, slug, provider_code, input_type, thumbnail_url, is_active) VALUES
+('prod-pubg', 'cat-game', 'PUBG Mobile', 'pubg-mobile', 'KRAFTON', 'user_id', 'assets/img/products/pubg-mobile.svg', TRUE),
+('prod-hok', 'cat-game', 'Honor of Kings', 'honor-of-kings', 'TIMI', 'user_id', 'assets/img/products/honor-of-kings.svg', TRUE),
+('prod-roblox', 'cat-game', 'Roblox', 'roblox', 'ROBLOX', 'account_id', 'assets/img/products/roblox.svg', TRUE),
+('prod-valorant', 'cat-game', 'Valorant', 'valorant', 'RIOT', 'account_id', 'assets/img/products/valorant.svg', TRUE),
+('prod-xl', 'cat-pulsa', 'XL Axiata Data & Pulsa', 'xl-axiata', 'XL', 'phone_number', 'assets/img/products/xl-axiata.svg', TRUE),
+('prod-indosat', 'cat-pulsa', 'Indosat IM3 Data & Pulsa', 'indosat-im3', 'INDOSAT', 'phone_number', 'assets/img/products/indosat-im3.svg', TRUE),
+('prod-byu', 'cat-pulsa', 'by.U Paket Data', 'byu-data', 'BYU', 'phone_number', 'assets/img/products/byu-data.svg', TRUE),
+('prod-smartfren', 'cat-pulsa', 'Smartfren Unlimited', 'smartfren', 'SMARTFREN', 'phone_number', 'assets/img/products/smartfren.svg', TRUE),
+('prod-youtube', 'cat-app', 'YouTube Premium', 'youtube-premium', 'GOOGLE', 'contact_only', 'assets/img/products/youtube-premium.svg', TRUE),
+('prod-disney', 'cat-app', 'Disney+ Hotstar', 'disney-hotstar', 'DISNEY', 'contact_only', 'assets/img/products/disney-hotstar.svg', TRUE),
+('prod-canva', 'cat-app', 'Canva Pro', 'canva-pro', 'CANVA', 'contact_only', 'assets/img/products/canva-pro.svg', TRUE),
+('prod-capcut', 'cat-app', 'CapCut Pro', 'capcut-pro', 'BYTEDANCE', 'contact_only', 'assets/img/products/capcut-pro.svg', TRUE),
+('prod-vidio', 'cat-app', 'Vidio Platinum', 'vidio-platinum', 'VIDIO', 'contact_only', 'assets/img/products/vidio-platinum.svg', TRUE),
+('prod-steam', 'cat-voucher', 'Steam Wallet Code', 'steam-wallet', 'VALVE', 'contact_only', 'assets/img/products/steam-wallet.svg', TRUE),
+('prod-psn', 'cat-voucher', 'PlayStation Store Voucher', 'playstation-store', 'SONY', 'contact_only', 'assets/img/products/playstation-store.svg', TRUE),
+('prod-razer', 'cat-voucher', 'Razer Gold', 'razer-gold', 'RAZER', 'contact_only', 'assets/img/products/razer-gold.svg', TRUE),
+('prod-apple', 'cat-voucher', 'Apple Gift Card', 'apple-gift-card', 'APPLE', 'contact_only', 'assets/img/products/apple-gift-card.svg', TRUE),
+('prod-pdam', 'cat-pajak', 'PDAM Tagihan Air', 'pdam-air', 'PDAM', 'account_id', 'assets/img/products/pdam-air.svg', TRUE),
+('prod-bpjs', 'cat-pajak', 'BPJS Kesehatan', 'bpjs-kesehatan', 'BPJS', 'account_id', 'assets/img/products/bpjs-kesehatan.svg', TRUE),
+('prod-indihome', 'cat-pajak', 'Tagihan IndiHome', 'indihome', 'TELKOM', 'account_id', 'assets/img/products/indihome.svg', TRUE)
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO product_variants (id, product_id, name, sku_code, original_price, selling_price, stock, is_active) VALUES
+('var-ml-257', 'prod-mlbb', '257 Diamonds', 'ML-257DM', 66000, 58000, 999, TRUE),
+('var-ml-344', 'prod-mlbb', '344 Diamonds', 'ML-344DM', 88000, 77500, 999, TRUE),
+('var-ff-355', 'prod-ff', '355 Diamonds', 'FF-355DM', 50000, 45000, 999, TRUE),
+('var-ff-week', 'prod-ff', 'Member Mingguan', 'FF-WEEK', 32000, 29000, 999, TRUE),
+('var-pubg-60', 'prod-pubg', '60 UC', 'PUBG-60UC', 16000, 15000, 999, TRUE),
+('var-pubg-325', 'prod-pubg', '325 UC', 'PUBG-325UC', 80000, 74000, 999, TRUE),
+('var-pubg-660', 'prod-pubg', '660 UC', 'PUBG-660UC', 160000, 148000, 999, TRUE),
+('var-hok-80', 'prod-hok', '80 Tokens', 'HOK-80T', 16500, 15000, 999, TRUE),
+('var-hok-240', 'prod-hok', '240 Tokens', 'HOK-240T', 48000, 44000, 999, TRUE),
+('var-rbx-80', 'prod-roblox', '80 Robux', 'RBX-80', 16500, 15500, 999, TRUE),
+('var-rbx-400', 'prod-roblox', '400 Robux', 'RBX-400', 80000, 75000, 999, TRUE),
+('var-val-475', 'prod-valorant', '475 VP', 'VAL-475', 60000, 55000, 999, TRUE),
+('var-val-1000', 'prod-valorant', '1.000 VP', 'VAL-1000', 120000, 112000, 999, TRUE),
+('var-tks-p25', 'prod-tksel', 'Pulsa 25.000', 'TKS-P25', 27500, 26500, 999, TRUE),
+('var-tks-25gb', 'prod-tksel', 'Kuota 25 GB 30 Hari', 'TKS-25GB', 85000, 78000, 999, TRUE),
+('var-xl-p10', 'prod-xl', 'Pulsa 10.000', 'XL-P10', 12000, 11500, 999, TRUE),
+('var-xl-15gb', 'prod-xl', 'Kuota 15 GB 30 Hari', 'XL-15GB', 60000, 55000, 999, TRUE),
+('var-im3-p20', 'prod-indosat', 'Pulsa 20.000', 'IM3-P20', 22000, 21500, 999, TRUE),
+('var-im3-20gb', 'prod-indosat', 'Kuota 20 GB 30 Hari', 'IM3-20GB', 75000, 70000, 999, TRUE),
+('var-byu-10gb', 'prod-byu', 'Kuota 10 GB 30 Hari', 'BYU-10GB', 28000, 25000, 999, TRUE),
+('var-sf-20gb', 'prod-smartfren', 'Kuota 20 GB 30 Hari', 'SF-20GB', 55000, 50000, 999, TRUE),
+('var-yt-1bln', 'prod-youtube', 'YouTube Premium 1 Bulan', 'YT-1M', 25000, 18000, 3, TRUE),
+('var-dis-1bln', 'prod-disney', 'Disney+ Hotstar 1 Bulan Mobile', 'DIS-1M', 40000, 30000, 3, TRUE),
+('var-cv-1bln', 'prod-canva', 'Canva Pro 1 Bulan', 'CV-1M', 25000, 15000, 3, TRUE),
+('var-cc-1bln', 'prod-capcut', 'CapCut Pro 1 Bulan', 'CC-1M', 35000, 25000, 3, TRUE),
+('var-vd-1bln', 'prod-vidio', 'Vidio Platinum 1 Bulan', 'VD-1M', 30000, 22000, 3, TRUE),
+('var-stm-60', 'prod-steam', 'Steam Wallet Rp 60.000', 'STM-60K', 62000, 62000, 3, TRUE),
+('var-psn-100', 'prod-psn', 'Voucher Rp 100.000', 'PSN-100K', 103000, 103000, 3, TRUE),
+('var-rzr-50', 'prod-razer', 'Razer Gold Rp 50.000', 'RZR-50K', 52000, 52000, 3, TRUE),
+('var-apl-100', 'prod-apple', 'Gift Card Rp 100.000', 'APL-100K', 105000, 105000, 3, TRUE),
+('var-pdam-50', 'prod-pdam', 'Tagihan Rp 50.000', 'PDAM-50K', 52500, 52500, 999, TRUE),
+('var-pdam-100', 'prod-pdam', 'Tagihan Rp 100.000', 'PDAM-100K', 102500, 102500, 999, TRUE),
+('var-bpjs-k3', 'prod-bpjs', 'Iuran Kelas 3 (1 Bulan)', 'BPJS-K3', 37500, 37500, 999, TRUE),
+('var-ih-100', 'prod-indihome', 'Tagihan Rp 100.000', 'IH-100K', 102500, 102500, 999, TRUE),
+('var-ih-300', 'prod-indihome', 'Tagihan Rp 300.000', 'IH-300K', 302500, 302500, 999, TRUE)
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO product_credentials (id, variant_id, transaction_id, secret_payload, is_redeemed) VALUES
+('cred-10', 'var-yt-1bln', NULL, 'Kode/Akun Demo: YT-1-DEMO-0007', FALSE),
+('cred-11', 'var-yt-1bln', NULL, 'Kode/Akun Demo: YT-2-DEMO-0014', FALSE),
+('cred-12', 'var-yt-1bln', NULL, 'Kode/Akun Demo: YT-3-DEMO-0021', FALSE),
+('cred-13', 'var-dis-1bln', NULL, 'Kode/Akun Demo: DIS-1-DEMO-0007', FALSE),
+('cred-14', 'var-dis-1bln', NULL, 'Kode/Akun Demo: DIS-2-DEMO-0014', FALSE),
+('cred-15', 'var-dis-1bln', NULL, 'Kode/Akun Demo: DIS-3-DEMO-0021', FALSE),
+('cred-16', 'var-cv-1bln', NULL, 'Kode/Akun Demo: CANVA-1-DEMO-0007', FALSE),
+('cred-17', 'var-cv-1bln', NULL, 'Kode/Akun Demo: CANVA-2-DEMO-0014', FALSE),
+('cred-18', 'var-cv-1bln', NULL, 'Kode/Akun Demo: CANVA-3-DEMO-0021', FALSE),
+('cred-19', 'var-cc-1bln', NULL, 'Kode/Akun Demo: CAPCUT-1-DEMO-0007', FALSE),
+('cred-20', 'var-cc-1bln', NULL, 'Kode/Akun Demo: CAPCUT-2-DEMO-0014', FALSE),
+('cred-21', 'var-cc-1bln', NULL, 'Kode/Akun Demo: CAPCUT-3-DEMO-0021', FALSE),
+('cred-22', 'var-vd-1bln', NULL, 'Kode/Akun Demo: VIDIO-1-DEMO-0007', FALSE),
+('cred-23', 'var-vd-1bln', NULL, 'Kode/Akun Demo: VIDIO-2-DEMO-0014', FALSE),
+('cred-24', 'var-vd-1bln', NULL, 'Kode/Akun Demo: VIDIO-3-DEMO-0021', FALSE),
+('cred-25', 'var-stm-60', NULL, 'Kode/Akun Demo: STEAM-1-DEMO-0007', FALSE),
+('cred-26', 'var-stm-60', NULL, 'Kode/Akun Demo: STEAM-2-DEMO-0014', FALSE),
+('cred-27', 'var-stm-60', NULL, 'Kode/Akun Demo: STEAM-3-DEMO-0021', FALSE),
+('cred-28', 'var-psn-100', NULL, 'Kode/Akun Demo: PSN-1-DEMO-0007', FALSE),
+('cred-29', 'var-psn-100', NULL, 'Kode/Akun Demo: PSN-2-DEMO-0014', FALSE),
+('cred-30', 'var-psn-100', NULL, 'Kode/Akun Demo: PSN-3-DEMO-0021', FALSE),
+('cred-31', 'var-rzr-50', NULL, 'Kode/Akun Demo: RAZER-1-DEMO-0007', FALSE),
+('cred-32', 'var-rzr-50', NULL, 'Kode/Akun Demo: RAZER-2-DEMO-0014', FALSE),
+('cred-33', 'var-rzr-50', NULL, 'Kode/Akun Demo: RAZER-3-DEMO-0021', FALSE),
+('cred-34', 'var-apl-100', NULL, 'Kode/Akun Demo: APPLE-1-DEMO-0007', FALSE),
+('cred-35', 'var-apl-100', NULL, 'Kode/Akun Demo: APPLE-2-DEMO-0014', FALSE),
+('cred-36', 'var-apl-100', NULL, 'Kode/Akun Demo: APPLE-3-DEMO-0021', FALSE)
 ON DUPLICATE KEY UPDATE secret_payload=VALUES(secret_payload);
