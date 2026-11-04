@@ -559,6 +559,19 @@ router.get('/qr', async (req, res) => {
 // ============================================================
 // ADMIN CRUD ROUTES (Real Database + Memory Fallback)
 // ============================================================
+// Middleware verifikasi hak akses Administrator
+const requireAdmin = (req, res, next) => {
+  const role = req.headers['x-user-role'];
+  const email = req.headers['x-user-email'];
+  if (role === 'admin' || (email && email.toLowerCase() === 'mari@admin.com')) {
+    return next();
+  }
+  return res.status(403).json({
+    success: false,
+    message: 'Akses ditolak: Operasi ini membutuhkan hak akses Administrator Mari Shop.'
+  });
+};
+
 let mockAdminCreds = [
   { id: 'cred-1', variant_id: 'var-nflx-1bln', secret_payload: 'Email: streamvip01@gmail.com | Pass: RahasiaVip2026 | Pin: 1234', is_redeemed: false },
   { id: 'cred-2', variant_id: 'var-nflx-1bln', secret_payload: 'Email: streamvip02@gmail.com | Pass: RahasiaVip2026 | Pin: 5678', is_redeemed: true },
@@ -566,7 +579,7 @@ let mockAdminCreds = [
 ];
 
 // --- PRODUK CRUD ---
-router.post('/admin/products', async (req, res) => {
+router.post('/admin/products', requireAdmin, async (req, res) => {
   const { id, category_id, name, slug, provider_code, input_type, thumbnail_url, is_active } = req.body;
   const prodId = id || ('prod-' + Date.now().toString(36));
   const activeVal = is_active === false ? 0 : 1;
@@ -587,7 +600,7 @@ router.post('/admin/products', async (req, res) => {
   }
 });
 
-router.put('/admin/products/:id', async (req, res) => {
+router.put('/admin/products/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { category_id, name, slug, provider_code, input_type, thumbnail_url, is_active } = req.body;
   const activeVal = is_active === false ? 0 : 1;
@@ -606,7 +619,7 @@ router.put('/admin/products/:id', async (req, res) => {
   }
 });
 
-router.delete('/admin/products/:id', async (req, res) => {
+router.delete('/admin/products/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
   try {
     await pool.query('DELETE FROM products WHERE id = ?', [id]);
@@ -619,7 +632,7 @@ router.delete('/admin/products/:id', async (req, res) => {
 });
 
 // --- VARIAN CRUD ---
-router.post('/admin/variants', async (req, res) => {
+router.post('/admin/variants', requireAdmin, async (req, res) => {
   const { id, product_id, name, sku_code, original_price, selling_price, stock, is_active } = req.body;
   const varId = id || ('var-' + Date.now().toString(36));
   const activeVal = is_active === false ? 0 : 1;
@@ -639,7 +652,7 @@ router.post('/admin/variants', async (req, res) => {
   }
 });
 
-router.put('/admin/variants/:id', async (req, res) => {
+router.put('/admin/variants/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { name, sku_code, original_price, selling_price, stock, is_active } = req.body;
   const activeVal = is_active === false ? 0 : 1;
@@ -661,7 +674,7 @@ router.put('/admin/variants/:id', async (req, res) => {
   }
 });
 
-router.delete('/admin/variants/:id', async (req, res) => {
+router.delete('/admin/variants/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
   try {
     await pool.query('DELETE FROM product_variants WHERE id = ?', [id]);
@@ -679,7 +692,7 @@ router.delete('/admin/variants/:id', async (req, res) => {
 });
 
 // --- KREDENSIAL CRUD (STOK AKUN/VOUCHER) ---
-router.get('/admin/credentials', async (req, res) => {
+router.get('/admin/credentials', requireAdmin, async (req, res) => {
   const { variant_id } = req.query;
   try {
     let sql = 'SELECT id, variant_id, transaction_id, secret_payload, is_redeemed FROM product_credentials';
@@ -698,7 +711,7 @@ router.get('/admin/credentials', async (req, res) => {
   }
 });
 
-router.post('/admin/credentials', async (req, res) => {
+router.post('/admin/credentials', requireAdmin, async (req, res) => {
   const { credentials } = req.body; // array of { id, variant_id, secret_payload }
   if (!Array.isArray(credentials) || credentials.length === 0) {
     return res.status(400).json({ success: false, message: 'Daftar kredensial kosong' });
@@ -725,7 +738,7 @@ router.post('/admin/credentials', async (req, res) => {
   }
 });
 
-router.delete('/admin/credentials/:id', async (req, res) => {
+router.delete('/admin/credentials/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
   try {
     await pool.query('DELETE FROM product_credentials WHERE id = ? AND is_redeemed = FALSE', [id]);

@@ -26,13 +26,25 @@ function imgFallback(e) {
   e.target.src = PLACEHOLDER_IMG;
 }
 
-// ---------- Fetch API (error-aware) ----------
+// ---------- Fetch API (error-aware & auth-aware) ----------
 async function api(path, options = {}) {
   let res;
   try {
+    const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+    try {
+      const userSession = localStorage.getItem('mari_user_session');
+      if (userSession) {
+        const u = JSON.parse(userSession);
+        if (u && u.role) {
+          headers['X-User-Role'] = u.role;
+          headers['X-User-Email'] = u.email || '';
+        }
+      }
+    } catch (e) {}
+
     res = await fetch('/api' + path, {
-      headers: { 'Content-Type': 'application/json' },
-      ...options
+      ...options,
+      headers
     });
   } catch (e) {
     const err = new Error('Tidak bisa terhubung ke server. Pastikan "npm run dev" sedang berjalan.');
