@@ -29,7 +29,6 @@ const MOCK_PRODUCTS = [
   mkProd('prod-pubg', 'cat-game', 'PUBG Mobile', 'pubg-mobile', 'KRAFTON', 'user_id'),
   mkProd('prod-hok', 'cat-game', 'Honor of Kings', 'honor-of-kings', 'TIMI', 'user_id'),
   mkProd('prod-roblox', 'cat-game', 'Roblox', 'roblox', 'ROBLOX', 'account_id'),
-  mkProd('prod-valorant', 'cat-game', 'Valorant', 'valorant', 'RIOT', 'account_id'),
   mkProd('prod-tksel', 'cat-pulsa', 'Telkomsel Data & Pulsa', 'telkomsel', 'TELKOMSEL', 'phone_number'),
   mkProd('prod-tri', 'cat-pulsa', 'Tri (3) Data & Pulsa', 'tri-data', 'TRI', 'phone_number'),
   mkProd('prod-xl', 'cat-pulsa', 'XL Axiata Data & Pulsa', 'xl-axiata', 'XL', 'phone_number'),
@@ -42,16 +41,6 @@ const MOCK_PRODUCTS = [
   mkProd('prod-disney', 'cat-app', 'Disney+ Hotstar', 'disney-hotstar', 'DISNEY', 'contact_only'),
   mkProd('prod-canva', 'cat-app', 'Canva Pro', 'canva-pro', 'CANVA', 'contact_only'),
   mkProd('prod-capcut', 'cat-app', 'CapCut Pro', 'capcut-pro', 'BYTEDANCE', 'contact_only'),
-  mkProd('prod-vidio', 'cat-app', 'Vidio Platinum', 'vidio-platinum', 'VIDIO', 'contact_only'),
-  mkProd('prod-gplay', 'cat-voucher', 'Google Play Gift Card', 'google-play', 'GOOGLE', 'contact_only'),
-  mkProd('prod-steam', 'cat-voucher', 'Steam Wallet Code', 'steam-wallet', 'VALVE', 'contact_only'),
-  mkProd('prod-psn', 'cat-voucher', 'PlayStation Store Voucher', 'playstation-store', 'SONY', 'contact_only'),
-  mkProd('prod-razer', 'cat-voucher', 'Razer Gold', 'razer-gold', 'RAZER', 'contact_only'),
-  mkProd('prod-apple', 'cat-voucher', 'Apple Gift Card', 'apple-gift-card', 'APPLE', 'contact_only'),
-  mkProd('prod-pln', 'cat-pajak', 'Token Listrik PLN', 'pln-token', 'PLN', 'account_id'),
-  mkProd('prod-pdam', 'cat-pajak', 'PDAM Tagihan Air', 'pdam-air', 'PDAM', 'account_id'),
-  mkProd('prod-bpjs', 'cat-pajak', 'BPJS Kesehatan', 'bpjs-kesehatan', 'BPJS', 'account_id'),
-  mkProd('prod-indihome', 'cat-pajak', 'Tagihan IndiHome', 'indihome', 'TELKOM', 'account_id')
 ];
 
 const mkVar = (id, name, sku, sell, orig, stock) =>
@@ -87,10 +76,6 @@ const MOCK_VARIANTS = {
   'roblox': [
     mkVar('var-rbx-80', '80 Robux', 'RBX-80', 15500, 16500, 999),
     mkVar('var-rbx-400', '400 Robux', 'RBX-400', 75000, 80000, 999)
-  ],
-  'valorant': [
-    mkVar('var-val-475', '475 VP', 'VAL-475', 55000, 60000, 999),
-    mkVar('var-val-1000', '1.000 VP', 'VAL-1000', 112000, 120000, 999)
   ],
   'telkomsel': [
     mkVar('var-tks-10gb', 'Kuota 10 GB 30 Hari', 'TKS-10GB', 42000, 45000, 999),
@@ -133,41 +118,6 @@ const MOCK_VARIANTS = {
   'capcut-pro': [
     mkVar('var-cc-1bln', 'CapCut Pro 1 Bulan', 'CC-1M', 25000, 35000, 3)
   ],
-  'vidio-platinum': [
-    mkVar('var-vd-1bln', 'Vidio Platinum 1 Bulan', 'VD-1M', 22000, 30000, 3)
-  ],
-  'google-play': [
-    mkVar('var-gp-50', 'Gift Card Rp 50.000', 'GP-50K', 52000, 52000, 20),
-    mkVar('var-gp-100', 'Gift Card Rp 100.000', 'GP-100K', 102000, 102000, 0)
-  ],
-  'steam-wallet': [
-    mkVar('var-stm-60', 'Steam Wallet Rp 60.000', 'STM-60K', 62000, 62000, 3)
-  ],
-  'playstation-store': [
-    mkVar('var-psn-100', 'Voucher Rp 100.000', 'PSN-100K', 103000, 103000, 3)
-  ],
-  'razer-gold': [
-    mkVar('var-rzr-50', 'Razer Gold Rp 50.000', 'RZR-50K', 52000, 52000, 3)
-  ],
-  'apple-gift-card': [
-    mkVar('var-apl-100', 'Gift Card Rp 100.000', 'APL-100K', 105000, 105000, 3)
-  ],
-  'pln-token': [
-    mkVar('var-pln-20', 'Token 20.000', 'PLN-20K', 22500, 22500, 999),
-    mkVar('var-pln-50', 'Token 50.000', 'PLN-50K', 52500, 52500, 999),
-    mkVar('var-pln-100', 'Token 100.000', 'PLN-100K', 102500, 102500, 999)
-  ],
-  'pdam-air': [
-    mkVar('var-pdam-50', 'Tagihan Rp 50.000', 'PDAM-50K', 52500, 52500, 999),
-    mkVar('var-pdam-100', 'Tagihan Rp 100.000', 'PDAM-100K', 102500, 102500, 999)
-  ],
-  'bpjs-kesehatan': [
-    mkVar('var-bpjs-k3', 'Iuran Kelas 3 (1 Bulan)', 'BPJS-K3', 37500, 37500, 999)
-  ],
-  'indihome': [
-    mkVar('var-ih-100', 'Tagihan Rp 100.000', 'IH-100K', 102500, 102500, 999),
-    mkVar('var-ih-300', 'Tagihan Rp 300.000', 'IH-300K', 302500, 302500, 999)
-  ]
 };
 
 // Lengkapi data produk mock: harga mulai & total stok (sama seperti hasil query MySQL)
@@ -189,16 +139,10 @@ const findMockVariant = (id) => {
 const MOCK_CREDENTIALS = {
   'var-nflx-1bln': ['Email: streamvip01@gmail.com | Pass: RahasiaVip2026 | Pin: 1234', 'Email: streamvip02@gmail.com | Pass: RahasiaVip2026 | Pin: 5678'],
   'var-spot-1bln': ['Voucher Code: SPOT-IND-9921-XKQ8'],
-  'var-gp-50': ['Voucher Code: GPLAY-50K-7QX2-LM91'],
   'var-yt-1bln': ['Kode/Akun Demo: YT-1-DEMO-0007', 'Kode/Akun Demo: YT-2-DEMO-0014', 'Kode/Akun Demo: YT-3-DEMO-0021'],
   'var-dis-1bln': ['Kode/Akun Demo: DIS-1-DEMO-0007', 'Kode/Akun Demo: DIS-2-DEMO-0014', 'Kode/Akun Demo: DIS-3-DEMO-0021'],
   'var-cv-1bln': ['Kode/Akun Demo: CANVA-1-DEMO-0007', 'Kode/Akun Demo: CANVA-2-DEMO-0014', 'Kode/Akun Demo: CANVA-3-DEMO-0021'],
   'var-cc-1bln': ['Kode/Akun Demo: CAPCUT-1-DEMO-0007', 'Kode/Akun Demo: CAPCUT-2-DEMO-0014', 'Kode/Akun Demo: CAPCUT-3-DEMO-0021'],
-  'var-vd-1bln': ['Kode/Akun Demo: VIDIO-1-DEMO-0007', 'Kode/Akun Demo: VIDIO-2-DEMO-0014', 'Kode/Akun Demo: VIDIO-3-DEMO-0021'],
-  'var-stm-60': ['Kode/Akun Demo: STEAM-1-DEMO-0007', 'Kode/Akun Demo: STEAM-2-DEMO-0014', 'Kode/Akun Demo: STEAM-3-DEMO-0021'],
-  'var-psn-100': ['Kode/Akun Demo: PSN-1-DEMO-0007', 'Kode/Akun Demo: PSN-2-DEMO-0014', 'Kode/Akun Demo: PSN-3-DEMO-0021'],
-  'var-rzr-50': ['Kode/Akun Demo: RAZER-1-DEMO-0007', 'Kode/Akun Demo: RAZER-2-DEMO-0014', 'Kode/Akun Demo: RAZER-3-DEMO-0021'],
-  'var-apl-100': ['Kode/Akun Demo: APPLE-1-DEMO-0007', 'Kode/Akun Demo: APPLE-2-DEMO-0014', 'Kode/Akun Demo: APPLE-3-DEMO-0021']
 };
 
 const MOCK_PAYMENTS = [
