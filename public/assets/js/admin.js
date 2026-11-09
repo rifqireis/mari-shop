@@ -17,9 +17,8 @@ const AdminAPI = {
     }));
     return { categories: c.data, products, variants };
   },
-  async saveProduct(data) {
+  async saveProduct(data, isEdit = false) {
     try {
-      const isEdit = !!data.id;
       const res = await api(isEdit ? "/admin/products/" + encodeURIComponent(data.id) : "/admin/products", {
         method: isEdit ? "PUT" : "POST",
         body: JSON.stringify(data)
@@ -38,9 +37,8 @@ const AdminAPI = {
     }
     return true;
   },
-  async saveVariant(data) {
+  async saveVariant(data, isEdit = false) {
     try {
-      const isEdit = !!data.id;
       const res = await api(isEdit ? "/admin/variants/" + encodeURIComponent(data.id) : "/admin/variants", {
         method: isEdit ? "PUT" : "POST",
         body: JSON.stringify(data)
@@ -220,12 +218,12 @@ function adminProducts() {
       if (Object.keys(e).length) return shake(document.querySelector(".modal-box"));
 
       if (this.modal.type === "product") {
-        const saved = await AdminAPI.saveProduct(f);
+        const saved = await AdminAPI.saveProduct(f, this.modal.editing);
         if (this.modal.editing) this.products = this.products.map(p => p.id === f.id ? { ...p, ...saved } : p);
         else this.products.push({ ...saved, id: saved.id || uid("prod"), category_name: this.catName(f.category_id) });
       } else {
         ["original_price", "selling_price", "stock"].forEach(k => f[k] = Number(f[k]));
-        const saved = await AdminAPI.saveVariant(f);
+        const saved = await AdminAPI.saveVariant(f, this.modal.editing);
         if (this.modal.editing) this.variants = this.variants.map(v => v.id === f.id ? { ...v, ...saved } : v);
         else this.variants.push({ ...saved, id: saved.id || uid("var") });
       }

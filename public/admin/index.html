@@ -179,6 +179,10 @@
 
             <template x-if="modal.type === 'product'">
               <div style="display:grid; gap:14px;">
+                <div>
+                  <label class="form-hint">ID Produk (Opsional / Kosongkan untuk otomatis)</label>
+                  <input class="brutal-input text-mono" x-model="modal.form.id" placeholder="Contoh: prod-game-baru" :disabled="modal.editing">
+                </div>
                 <div :class="{ 'has-error': errors.name }"><label class="form-hint">Nama produk</label><input class="brutal-input" x-model="modal.form.name"><div class="form-error" x-text="errors.name"></div></div>
                 <div :class="{ 'has-error': errors.slug }"><label class="form-hint">Slug (kosongkan = otomatis)</label><input class="brutal-input" x-model="modal.form.slug"><div class="form-error" x-text="errors.slug"></div></div>
                 <div><label class="form-hint">Kategori</label><select class="brutal-input" x-model="modal.form.category_id"><template x-for="c in categories" :key="c.id"><option :value="c.id" x-text="c.name"></option></template></select></div>
@@ -197,6 +201,10 @@
             <template x-if="modal.type === 'variant'">
               <div style="display:grid; gap:14px;">
                 <div><label class="form-hint">Produk</label><select class="brutal-input" x-model="modal.form.product_id"><template x-for="p in products" :key="p.id"><option :value="p.id" x-text="p.name"></option></template></select></div>
+                <div>
+                  <label class="form-hint">ID Varian (Opsional / Kosongkan untuk otomatis)</label>
+                  <input class="brutal-input text-mono" x-model="modal.form.id" placeholder="Contoh: var-byu-unlimited" :disabled="modal.editing">
+                </div>
                 <div :class="{ 'has-error': errors.name }"><label class="form-hint">Nama varian</label><input class="brutal-input" x-model="modal.form.name"><div class="form-error" x-text="errors.name"></div></div>
                 <div :class="{ 'has-error': errors.sku_code }"><label class="form-hint">Kode SKU</label><input class="brutal-input text-mono" x-model="modal.form.sku_code"><div class="form-error" x-text="errors.sku_code"></div></div>
                 <div class="field-row" style="grid-template-columns:1fr 1fr;">
