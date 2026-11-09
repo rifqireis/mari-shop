@@ -111,7 +111,7 @@ function adminProducts() {
     user: (typeof Auth !== "undefined" ? Auth.getUser() : null),
     isAdmin: false,
     adminEmail: "mari@admin.com",
-    adminPass: "admin123",
+    adminPass: "",
     loginError: "",
     loginLoading: false,
 
@@ -260,7 +260,7 @@ function adminCredentials() {
     user: (typeof Auth !== "undefined" ? Auth.getUser() : null),
     isAdmin: false,
     adminEmail: "mari@admin.com",
-    adminPass: "admin123",
+    adminPass: "",
     loginError: "",
     loginLoading: false,
 
@@ -395,7 +395,7 @@ function adminTransactions() {
     user: (typeof Auth !== "undefined" ? Auth.getUser() : null),
     isAdmin: false,
     adminEmail: "mari@admin.com",
-    adminPass: "admin123",
+    adminPass: "",
     loginError: "",
     loginLoading: false,
 

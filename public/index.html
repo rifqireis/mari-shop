@@ -105,17 +105,6 @@
             </div>
             <button type="submit" class="btn btn-success btn-block btn-lg" :disabled="loading" x-text="loading ? 'Mendaftarkan...' : 'Daftar Akun Baru →'"></button>
           </form>
-
-          <!-- Akses Cepat Akun Demo -->
-          <div class="quick-login-box">
-            <div style="font-size:12px; font-weight:800; text-transform:uppercase; margin-bottom:8px; color:var(--text-main);">
-              ⚡ Akses Cepat Sekali Klik:
-            </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button type="button" class="btn btn-sm btn-secondary" @click="doQuickLogin('customer')">👤 Akun Rifqi (Customer)</button>
-              <button type="button" class="btn btn-sm btn-secondary" @click="doQuickLogin('admin')">⚙️ Akun Mari (Admin)</button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

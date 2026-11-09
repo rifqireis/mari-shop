@@ -792,17 +792,17 @@ router.delete('/admin/credentials/:id', requireAdmin, async (req, res) => {
 // AUTHENTICATION ROUTES (Login, Register, Session)
 // ============================================================
 const MOCK_USERS = [
-  { id: 'usr-cust-01', name: 'Rifqi Customer', email: 'rifqi@customer.com', password: 'password123', role: 'customer' },
-  { id: 'usr-admin-01', name: 'Mari Admin', email: 'mari@admin.com', password: 'admin123', role: 'admin' }
+  { id: 'usr-rifqi-01', name: 'Rifqi', email: 'rifqi@gmail.com', password: 'mari123', role: 'customer' },
+  { id: 'usr-admin-01', name: 'Mari Admin', email: 'mari@admin.com', password: 'mari123', role: 'admin' }
 ];
 
 router.post('/auth/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return res.status(400).json({ success: false, message: 'Email dan password wajib diisi' });
+    return res.status(400).json({ success: false, message: 'Email dan kata sandi wajib diisi' });
   }
   try {
-    const [rows] = await pool.query('SELECT id, name, email, role FROM users WHERE email = ? AND password = ? LIMIT 1', [email, password]);
+    const [rows] = await pool.query('SELECT id, name, email, role FROM users WHERE LOWER(email) = LOWER(?) AND password = ? LIMIT 1', [email.trim(), password]);
     if (rows.length > 0) {
       return res.json({ success: true, message: 'Login berhasil', data: rows[0] });
     }
@@ -810,19 +810,10 @@ router.post('/auth/login', async (req, res) => {
     // Fallback to mock users
   }
 
-  const user = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
+  const user = MOCK_USERS.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
   if (user && user.password === password) {
     const { password: _, ...userData } = user;
-    return res.json({ success: true, message: 'Login berhasil (demo)', data: userData });
-  } else if (email && password) {
-    // Toleran untuk demo jika user memasukkan email baru
-    const demoUser = {
-      id: 'usr-' + Date.now().toString(36),
-      name: email.split('@')[0],
-      email: email,
-      role: email.includes('admin') ? 'admin' : 'customer'
-    };
-    return res.json({ success: true, message: 'Login berhasil', data: demoUser });
+    return res.json({ success: true, message: 'Login berhasil', data: userData });
   }
 
   return res.status(401).json({ success: false, message: 'Email atau kata sandi tidak cocok' });

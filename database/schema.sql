@@ -235,6 +235,6 @@ ON DUPLICATE KEY UPDATE secret_payload=VALUES(secret_payload);
 
 -- Users
 INSERT INTO users (id, name, email, password, role) VALUES
-('usr-cust-01', 'Rifqi Customer', 'rifqi@customer.com', 'password123', 'customer'),
-('usr-admin-01', 'Mari Admin', 'mari@admin.com', 'admin123', 'admin')
+('usr-rifqi-01', 'Rifqi', 'rifqi@gmail.com', 'mari123', 'customer'),
+('usr-admin-01', 'Mari Admin', 'mari@admin.com', 'mari123', 'admin')
 ON DUPLICATE KEY UPDATE name=VALUES(name);

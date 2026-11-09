@@ -64,7 +64,7 @@ const Auth = {
       throw new Error(res.message || 'Login gagal');
     } catch (err) {
       // Fallback simulasi autentikasi
-      if (email.includes('admin') || password === 'admin123') {
+      if (email.includes('admin') || password === 'mari123') {
         const adminUser = {
           id: 'usr-admin-01',
           name: 'Mari Admin',
@@ -75,9 +75,9 @@ const Auth = {
         return adminUser;
       } else {
         const custUser = {
-          id: 'usr-cust-01',
-          name: email.split('@')[0] || 'Rifqi Customer',
-          email: email || 'rifqi@customer.com',
+          id: 'usr-rifqi-01',
+          name: email.split('@')[0] || 'Rifqi',
+          email: email || 'rifqi@gmail.com',
           role: 'customer'
         };
         this.setUser(custUser);
@@ -124,9 +124,9 @@ const Auth = {
       return admin;
     } else {
       const customer = {
-        id: 'usr-cust-01',
-        name: 'Rifqi Customer',
-        email: 'rifqi@customer.com',
+        id: 'usr-rifqi-01',
+        name: 'Rifqi',
+        email: 'rifqi@gmail.com',
         role: 'customer'
       };
       this.setUser(customer);
