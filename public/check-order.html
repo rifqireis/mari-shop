@@ -28,7 +28,7 @@
         <label for="navSearch" class="sr-only">Cari produk</label>
         <input id="navSearch" name="q" type="search" class="brutal-input" placeholder="Cari game, pulsa, atau akun premium..." autocomplete="off">
       </form>
-            <nav class="nav-links" aria-label="Navigasi utama">
+      <nav class="nav-links" aria-label="Navigasi utama">
         <a href="index.html#katalog" class="btn btn-secondary btn-sm"><img class="ico" src="/assets/img/icons/bag.svg" alt="" aria-hidden="true"> Katalog</a>
 
         <!-- Tombol Masuk / Profil Pengguna -->
@@ -117,13 +117,43 @@
 
   <main class="container page-main">
     <div class="check-wrap">
-      <!-- Status Box User Terhubung -->
-      <template x-if="user">
-        <div class="guide-box" style="margin-bottom:16px; background:#D9F6FF; border-style:solid;">
-          <div style="font-size:16px; font-weight:800; color:var(--text-main);">
-            👤 Pesanan Terhubung: <span x-text="user.name"></span> (<span x-text="user.email"></span>)
+      <!-- Status Box Hak Akses & Privasi -->
+      <template x-if="user && user.role !== 'admin'">
+        <div class="guide-box" style="margin-bottom:16px; background:#E8F4FD; border:2px solid #0B2A66; border-radius:10px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+            <div style="font-size:15px; font-weight:800; color:#0B2A66;">
+              👤 Akun Terhubung: <span x-text="user.name"></span> (<span x-text="user.email"></span>)
+            </div>
+            <span class="badge badge-blue" style="font-size:11px;">Privat: Hanya Data Anda</span>
           </div>
-          <p class="section-sub" style="margin-top:4px;">Menampilkan seluruh riwayat transaksi pesanan pada akun Anda.</p>
+          <p class="section-sub" style="margin-top:4px; font-size:12.5px;">
+            Sesuai aturan keamanan data, Anda hanya dapat melihat riwayat transaksi dari akun Anda sendiri.
+          </p>
+        </div>
+      </template>
+
+      <template x-if="user && user.role === 'admin'">
+        <div class="guide-box" style="margin-bottom:16px; background:#FFF9DB; border:2px solid #F59F00; border-radius:10px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+            <div style="font-size:15px; font-weight:800; color:#E67700;">
+              ⚙️ Mode Administrator (<span x-text="user.email"></span>)
+            </div>
+            <a href="admin/transactions.html" class="btn btn-sm btn-primary" style="font-size:12px;">Buka Rekap Transaksi User →</a>
+          </div>
+          <p class="section-sub" style="margin-top:4px; font-size:12.5px;">
+            Sebagai Admin, Anda dapat memantau seluruh transaksi dari semua pelanggan di panel admin.
+          </p>
+        </div>
+      </template>
+
+      <template x-if="!user">
+        <div class="guide-box" style="margin-bottom:16px; background:#F8F9FA; border:2px dashed #0B2A66; border-radius:10px;">
+          <div style="font-size:13.5px; font-weight:700; color:#0B2A66;">
+            💡 Masuk untuk melihat transaksi akun Anda secara otomatis.
+          </div>
+          <p class="section-sub" style="margin-top:4px; font-size:12px;">
+            Atau gunakan formulir pencarian di bawah untuk melacak menggunakan nomor invoice atau kontak pemesanan.
+          </p>
         </div>
       </template>
 
@@ -140,7 +170,7 @@
           <label class="sr-only" for="q" x-text="mode === 'invoice' ? 'Nomor invoice' : 'Nomor WhatsApp atau email'"></label>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <input id="q" class="brutal-input" style="flex:1; min-width:200px;" x-model="query" autocomplete="off"
-                   :placeholder="mode === 'invoice' ? 'Contoh: TRX-20261103-1234' : 'Contoh: 081234567890 atau nama@email.com'" @input="error = ''">
+                   :placeholder="mode === 'invoice' ? 'Contoh: TRX-654952-7977' : 'Contoh: 081234567890 atau nama@email.com'" @input="error = ''">
             <button type="submit" class="btn btn-primary" :disabled="loading" x-text="loading ? 'Mencari...' : 'Cari'"></button>
           </div>
           <div class="form-error" x-text="error"></div>
@@ -176,7 +206,7 @@
     </div>
   </main>
 
-      <footer class="site-footer">
+  <footer class="site-footer">
     <div class="container footer-grid">
       <div class="footer-brand-box">
         <div class="footer-title">MARI SHOP</div>
@@ -232,6 +262,7 @@
     </div>
     <div class="container footer-note">© 2026 Mari Shop | Platform Top Up Game &amp; Digital Goods Tercepat dan Terpercaya di Indonesia.</div>
   </footer>
+
   <!-- DYNAMIC MOBILE BOTTOM NAVIGATION -->
   <nav class="mobile-bottom-nav" aria-label="Navigasi Bawah">
     <a href="index.html" class="mobile-nav-item">

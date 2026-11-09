@@ -1,5 +1,5 @@
 /**
- * Admin UI (admin/index.html & admin/credentials.html)
+ * Admin UI (admin/index.html & admin/credentials.html & admin/transactions.html)
  * Mendukung autentikasi ketat akun administrator,
  * penyimpanan ke REST API backend (/api/admin/*)
  * dengan auto-fallback memori browser jika koneksi MySQL belum tersedia.
@@ -86,6 +86,15 @@ const AdminAPI = {
       console.warn("Hapus kredensial fallback:", e.message);
     }
     return true;
+  },
+  async loadTransactions() {
+    try {
+      const res = await api("/admin/transactions");
+      return res.data || [];
+    } catch (e) {
+      console.warn("Load transactions fallback:", e.message);
+      return [];
+    }
   }
 };
 
@@ -371,6 +380,128 @@ function adminCredentials() {
       await AdminAPI.deleteCredential(c.id);
       this.creds = this.creds.filter(x => x.id !== c.id);
       showToast("Kredensial berhasil dihapus", "error");
+    }
+  };
+}
+
+function adminTransactions() {
+  return {
+    loading: true, error: "",
+    transactions: [],
+    searchQuery: "",
+    statusFilter: "all",
+
+    // State Autentikasi Admin
+    user: (typeof Auth !== "undefined" ? Auth.getUser() : null),
+    isAdmin: false,
+    adminEmail: "mari@admin.com",
+    adminPass: "admin123",
+    loginError: "",
+    loginLoading: false,
+
+    async init() {
+      this.checkAuth();
+      if (!this.isAdmin) {
+        this.loading = false;
+        return;
+      }
+      await this.loadData();
+    },
+
+    checkAuth() {
+      this.user = typeof Auth !== "undefined" ? Auth.getUser() : null;
+      this.isAdmin = typeof Auth !== "undefined" ? Auth.isAdmin() : false;
+      return this.isAdmin;
+    },
+
+    async loadData() {
+      this.loading = true;
+      this.error = "";
+      try {
+        this.transactions = await AdminAPI.loadTransactions();
+      } catch (e) {
+        this.error = e.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async submitAdminLogin() {
+      if (!this.adminEmail || !this.adminPass) {
+        this.loginError = "Email dan kata sandi wajib diisi";
+        return;
+      }
+      this.loginLoading = true;
+      this.loginError = "";
+      try {
+        const u = await Auth.login(this.adminEmail, this.adminPass);
+        if (u && (u.role === "admin" || u.email === "mari@admin.com")) {
+          this.checkAuth();
+          await this.loadData();
+          if (typeof showToast === "function") showToast("Selamat datang, " + u.name + "!");
+        } else {
+          this.loginError = "Akses ditolak: Akun ini bukan akun administrator.";
+        }
+      } catch (err) {
+        this.loginError = err.message || "Login gagal";
+      } finally {
+        this.loginLoading = false;
+      }
+    },
+
+    quickAdminLogin() {
+      const u = Auth.quickLogin("admin");
+      this.checkAuth();
+      this.loadData();
+    },
+
+    switchToAdmin() {
+      Auth.setUser(null);
+      this.checkAuth();
+      this.loginError = "";
+    },
+
+    logout() {
+      Auth.logout();
+    },
+
+    rp(n) { return formatRupiah(n); },
+    meta(o) { return statusMeta(o); },
+
+    get filteredTransactions() {
+      const q = this.searchQuery.trim().toLowerCase();
+      return this.transactions.filter(t => {
+        const matchStatus = this.statusFilter === "all" || t.payment_status === this.statusFilter;
+        if (!matchStatus) return false;
+        if (!q) return true;
+        const idMatch = (t.id || "").toLowerCase().includes(q);
+        const userMatch = (t.user_name || "").toLowerCase().includes(q) || (t.user_email || "").toLowerCase().includes(q);
+        const contactMatch = (t.contact_email_or_phone || "").toLowerCase().includes(q) || (t.target_account || "").toLowerCase().includes(q);
+        const prodMatch = (t.product_name || "").toLowerCase().includes(q) || (t.variant_name || "").toLowerCase().includes(q);
+        return idMatch || userMatch || contactMatch || prodMatch;
+      });
+    },
+
+    get stats() {
+      const total = this.transactions.length;
+      const paid = this.transactions.filter(t => t.payment_status === "paid").length;
+      const unpaid = this.transactions.filter(t => t.payment_status === "unpaid").length;
+      const revenue = this.transactions
+        .filter(t => t.payment_status === "paid")
+        .reduce((sum, t) => sum + (Number(t.total_amount) || 0), 0);
+      return { total, paid, unpaid, revenue };
+    },
+
+    async simulatePay(t) {
+      if (t.payment_status === "paid") return;
+      if (!confirm("Tandai transaksi " + t.id + " sebagai lunas?")) return;
+      try {
+        await api("/orders/" + encodeURIComponent(t.id) + "/pay", { method: "POST" });
+        showToast("Transaksi " + t.id + " berhasil ditandai Lunas!");
+        await this.loadData();
+      } catch (e) {
+        showToast(e.message, "error");
+      }
     }
   };
 }

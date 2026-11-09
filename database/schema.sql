@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS payment_methods (
 -- 5. TABEL TRANSACTIONS (Order / Invoice)
 CREATE TABLE IF NOT EXISTS transactions (
     id VARCHAR(50) PRIMARY KEY, -- 'TRX-20261101-XXXX'
+    user_id VARCHAR(36) NULL,    -- Pengguna terdaftar (Aturan: user hanya melihat datanya sendiri)
     variant_id VARCHAR(36) NOT NULL,
     payment_method_id VARCHAR(50) NOT NULL,
     target_account VARCHAR(100) NOT NULL, -- No HP / Game ID / No Tagihan
@@ -80,6 +81,9 @@ CREATE TABLE IF NOT EXISTS transactions (
     payment_reference VARCHAR(255) NULL, -- VA Number / QRIS string
     paid_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_transactions_users
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT fk_transactions_variants
         FOREIGN KEY (variant_id) REFERENCES product_variants(id)
         ON DELETE RESTRICT ON UPDATE CASCADE,

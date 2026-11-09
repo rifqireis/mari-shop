@@ -38,6 +38,7 @@ async function api(path, options = {}) {
         if (u && u.role) {
           headers['X-User-Role'] = u.role;
           headers['X-User-Email'] = u.email || '';
+          headers['X-User-Id'] = u.id || '';
         }
       }
     } catch (e) {}

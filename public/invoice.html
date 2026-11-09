@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Invoice | Mari Shop</title>
-  <meta name="description" content="Detail pesanan dan pembayaran.">
+  <meta name="description" content="Detail pesanan dan status transaksi Mari Shop.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -21,14 +21,14 @@
   <script defer src="/vendor/alpine/cdn.min.js"></script>
 </head>
 <body x-data="invoice()" x-init="init()">
-    <header class="navbar" x-data="authNavComponent()" x-init="init()">
+  <header class="navbar" x-data="authNavComponent()" x-init="init()">
     <div class="container nav-wrapper">
       <a href="index.html" class="logo"><span class="logo-mark">MARI</span><span>SHOP</span></a>
       <form class="nav-search" action="index.html" method="get" role="search">
         <label for="navSearch" class="sr-only">Cari produk</label>
         <input id="navSearch" name="q" type="search" class="brutal-input" placeholder="Cari game, pulsa, atau akun premium..." autocomplete="off">
       </form>
-            <nav class="nav-links" aria-label="Navigasi utama">
+      <nav class="nav-links" aria-label="Navigasi utama">
         <a href="index.html#katalog" class="btn btn-secondary btn-sm"><img class="ico" src="/assets/img/icons/bag.svg" alt="" aria-hidden="true"> Katalog</a>
 
         <!-- Tombol Masuk / Profil Pengguna -->
@@ -127,7 +127,7 @@
 
     <template x-if="order">
       <div class="invoice-wrap">
-        <!-- Status -->
+        <!-- Status Bar -->
         <section class="brutal-card status-bar" aria-live="polite">
           <div>
             <div class="invoice-id" x-text="id"></div>
@@ -136,7 +136,47 @@
           <span class="badge status-big" :class="meta.cls"><img class="ico" :src="'/assets/img/icons/' + meta.icon + '.svg'" alt="" aria-hidden="true"> <span x-text="meta.label"></span></span>
         </section>
 
-        <!-- Instruksi bayar -->
+        <!-- BANNER AFTER TRANSAKSI (JIKA SUDAH LUNAS) -->
+        <section class="brutal-card" x-show="isPaid" x-cloak style="background:#E8F5E9; border-color:#2E7D32; border-width:3px; box-shadow:4px 4px 0 #1B5E20;">
+          <div style="display:flex; align-items:center; gap:16px;">
+            <div style="width:52px; height:52px; border-radius:50%; background:#2E7D32; color:#FFF; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:800; border:2px solid #0B2A66; box-shadow:2px 2px 0 #0B2A66; flex-shrink:0;">
+              ✓
+            </div>
+            <div style="flex:1;">
+              <h2 style="font-family:var(--font-family-heading); font-size:20px; font-weight:800; color:#1B5E20; margin-bottom:4px;">
+                Pembayaran Berhasil Diterima!
+              </h2>
+              <p style="font-size:14px; color:#2E7D32; font-weight:600; margin:0;">
+                Transaksi Anda telah lunas dan diverifikasi otomatis oleh sistem Mari Shop.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- INFO PENGIRIMAN TOP UP INSTAN -->
+        <section class="brutal-card" x-show="isPaid && !credentials" x-cloak style="background:#E3F2FD; border-color:#1565C0;">
+          <div style="display:flex; align-items:flex-start; gap:14px;">
+            <img class="ico" src="/assets/img/icons/bolt.svg" alt="" style="width:28px; height:28px; margin-top:2px;">
+            <div>
+              <div style="font-size:15px; font-weight:800; color:#0D47A1; margin-bottom:4px;">Pesanan Top Up Langsung Masuk</div>
+              <p style="font-size:13.5px; color:#1565C0; margin:0; line-height:1.45;">
+                Item produk telah dikirimkan ke Akun Target: <strong class="text-mono" x-text="targetLine"></strong>. Silakan periksa aplikasi game Anda.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- KREDENSIAL AKUN / VOUCHER (JIKA SUDAH LUNAS) -->
+        <section class="brutal-card secret-card" x-show="credentials" x-cloak>
+          <div class="brutal-card-header">
+            <h2 class="step-title"><img class="ico" src="/assets/img/icons/gift.svg" alt="" aria-hidden="true"> Kredensial Akun / Kode Voucher Siap!</h2>
+          </div>
+          <div class="secret-payload" x-text="credentials"></div>
+          <button type="button" class="btn btn-primary btn-block" @click="copyToClipboard(credentials, 'Detail akun disalin')">Salin Detail Akun / Voucher</button>
+          <p class="form-hint">Simpan dan jangan berikan kepada orang lain. Kredensial ini hanya dapat diakses melalui invoice Anda.</p>
+        </section>
+
+        <!-- Instruksi bayar (JIKA BELUM LUNAS) -->
         <section class="brutal-card" x-show="isUnpaid" x-cloak>
           <div style="text-align:center; margin-bottom:18px;">
             <div class="section-sub" style="margin-bottom:6px;" x-text="isExpired ? 'Waktu pembayaran habis' : 'Selesaikan pembayaran dalam'"></div>
@@ -146,11 +186,11 @@
           <div x-show="!isExpired">
             <div class="pay-grid" x-show="isQris">
               <div>
-                <div class="qr-frame" x-html="qrSvg" role="img" aria-label="QR pembayaran (simulasi)"></div>
-                <div class="form-hint" style="text-align:center;">QR simulasi untuk demo</div>
+                <div class="qr-frame" x-html="qrSvg" role="img" aria-label="QR pembayaran"></div>
+                <div class="form-hint" style="text-align:center;">Scan QRIS Mari Shop</div>
               </div>
               <div>
-                <p class="section-sub" style="margin-bottom:10px;">Scan dengan e-wallet atau mobile banking apa pun yang mendukung QRIS.</p>
+                <p class="section-sub" style="margin-bottom:10px;">Scan dengan e-wallet (DANA, GoPay, OVO, ShopeePay) atau mobile banking apa pun.</p>
                 <div class="section-sub">Total Pembayaran</div>
                 <div class="copy-value" style="font-size:28px; margin-bottom:12px;" x-text="rp(order.total_amount)"></div>
                 <button type="button" class="btn btn-secondary btn-sm" @click="downloadQr()"><img class="ico" src="/assets/img/icons/download.svg" alt="" aria-hidden="true"> Unduh QR</button>
@@ -174,50 +214,44 @@
           <div x-show="isExpired" class="guide-box" style="text-align:center;">Invoice kedaluwarsa. Silakan buat pesanan baru. <a href="index.html"><strong>Kembali belanja →</strong></a></div>
 
           <div class="demo-box" style="margin-top:18px;" x-show="demo && canPay">
-            <img class="ico" src="/assets/img/icons/sparkle.svg" alt="" aria-hidden="true"> <strong>Mode Demo</strong>: tidak ada pembayaran sungguhan. Klik tombol ini untuk mensimulasikan pembayaran lunas.
-            <div style="margin-top:10px;"><button type="button" class="btn btn-sm" style="background:var(--accent-pink);" :disabled="paying" @click="simulatePay()" x-text="paying ? 'Memproses...' : 'Simulasi Bayar'"></button></div>
+            <img class="ico" src="/assets/img/icons/sparkle.svg" alt="" aria-hidden="true"> <strong>Mode Presentasi / Demo</strong>: Simulasi verifikasi instan tanpa uang sungguhan.
+            <div style="margin-top:10px;"><button type="button" class="btn btn-sm" style="background:var(--accent-pink); font-weight:800;" :disabled="paying" @click="simulatePay()" x-text="paying ? 'Memproses...' : '⚡ Simulasi Bayar Instan'"></button></div>
           </div>
         </section>
 
-        <!-- Secret payload -->
-        <section class="brutal-card secret-card" x-show="credentials" x-cloak>
-          <div class="brutal-card-header"><h2 class="step-title"><img class="ico" src="/assets/img/icons/gift.svg" alt="" aria-hidden="true"> Pesananmu Siap!</h2></div>
-          <div class="secret-payload" x-text="credentials"></div>
-          <button type="button" class="btn btn-primary btn-block" @click="copyToClipboard(credentials, 'Detail akun disalin')">Salin Detail Akun / Voucher</button>
-          <p class="form-hint">Simpan dan jangan bagikan ke orang lain.</p>
-        </section>
-
-        <!-- Progres -->
+        <!-- Progres Transaksi -->
         <section class="brutal-card">
-          <h2 class="step-title" style="margin-bottom:12px;">Progres Pesanan</h2>
+          <h2 class="step-title" style="margin-bottom:12px;">Status Alur Transaksi</h2>
           <div class="timeline">
             <template x-for="s in steps" :key="s.t"><div class="tl-step" :class="{ 'done': s.ok }" x-text="s.t"></div></template>
           </div>
         </section>
 
-        <!-- Rincian -->
+        <!-- Rincian Pesanan -->
         <section class="brutal-card">
           <h2 class="step-title" style="margin-bottom:12px;">Rincian Pesanan</h2>
           <table class="detail-table">
             <tr><td>Produk</td><td x-text="productLine"></td></tr>
-            <tr><td>Tujuan</td><td class="text-mono" x-text="targetLine"></td></tr>
-            <tr><td>Kontak</td><td x-text="contact"></td></tr>
+            <tr><td>Tujuan / Target</td><td class="text-mono" x-text="targetLine"></td></tr>
+            <tr><td>Kontak Pemesan</td><td x-text="contact"></td></tr>
             <tr><td>Metode Bayar</td><td x-text="methodName"></td></tr>
-            <tr><td>Harga</td><td class="text-mono" x-text="rp(order.base_price)"></td></tr>
+            <tr><td>Harga Dasar</td><td class="text-mono" x-text="rp(order.base_price)"></td></tr>
             <tr><td>Biaya Layanan</td><td class="text-mono" x-text="rp(order.fee_amount)"></td></tr>
-            <tr><td><strong>Total</strong></td><td class="text-mono" style="font-size:18px;" x-text="rp(order.total_amount)"></td></tr>
+            <tr><td><strong>Total Bayar</strong></td><td class="text-mono" style="font-size:18px; font-weight:800;" x-text="rp(order.total_amount)"></td></tr>
           </table>
         </section>
 
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <!-- Navigasi & Aksi -->
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
           <a href="index.html" class="btn btn-secondary">← Belanja Lagi</a>
-          <a href="check-order.html" class="btn btn-secondary">Cek Pesanan Lain</a>
+          <a href="check-order.html" class="btn btn-secondary"><img class="ico" src="/assets/img/icons/receipt.svg" alt="" aria-hidden="true"> Pesanan Saya</a>
+          <button type="button" class="btn btn-secondary" onclick="window.print()"><img class="ico" src="/assets/img/icons/download.svg" alt="" aria-hidden="true"> Cetak Bukti</button>
         </div>
       </div>
     </template>
   </main>
 
-      <footer class="site-footer">
+  <footer class="site-footer">
     <div class="container footer-grid">
       <div class="footer-brand-box">
         <div class="footer-title">MARI SHOP</div>
@@ -273,6 +307,7 @@
     </div>
     <div class="container footer-note">© 2026 Mari Shop | Platform Top Up Game &amp; Digital Goods Tercepat dan Terpercaya di Indonesia.</div>
   </footer>
+
   <!-- DYNAMIC MOBILE BOTTOM NAVIGATION -->
   <nav class="mobile-bottom-nav" aria-label="Navigasi Bawah">
     <a href="index.html" class="mobile-nav-item">

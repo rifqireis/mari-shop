@@ -1,5 +1,5 @@
 /**
- * Halaman Invoice (invoice.html?id=TRX-XXXX)
+ * Halaman Invoice / After Transaksi (invoice.html?id=TRX-XXXX)
  * - countdown 15 menit, auto-refresh status tiap 5 dtk selama belum bayar
  * - QRIS (QR Asli dari library server /api/qr + fallback deterministik), VA/E-Wallet (salin kode), secret payload akun/voucher
  */
@@ -60,6 +60,7 @@ function invoice() {
 
     // ----- Status -----
     get isUnpaid() { return this.order && this.order.payment_status === 'unpaid'; },
+    get isPaid() { return this.order && this.order.payment_status === 'paid'; },
     get isExpired() {
       return this.order && (this.order.payment_status === 'expired' || (this.isUnpaid && this.remainingMs <= 0));
     },
@@ -75,7 +76,7 @@ function invoice() {
     get steps() {
       const paid = this.order && this.order.payment_status === 'paid';
       const done = paid && this.order.fulfillment_status === 'success';
-      return [\
+      return [
         { t: '1. Pesanan Dibuat', ok: true },
         { t: '2. Dibayar', ok: paid },
         { t: '3. Diproses', ok: paid },

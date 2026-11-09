@@ -139,6 +139,7 @@ function orderFlow() {
       if (!this.validate()) return;
       this.submitting = true;
       try {
+        const user = typeof Auth !== 'undefined' ? Auth.getUser() : null;
         const contact = this.form.contact.trim();
         const res = await api('/orders', {
           method: 'POST',
@@ -148,7 +149,8 @@ function orderFlow() {
             // produk akun/voucher tidak punya ID target: backend butuh target_account, pakai kontak
             target_account: this.needsAccount ? this.form.account.trim() : contact,
             target_zone: this.needsZone ? this.form.zone.trim() : null,
-            contact
+            contact,
+            user_id: user ? user.id : null
           })
         });
         rememberInvoice(res.data.invoice_id);

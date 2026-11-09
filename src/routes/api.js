@@ -254,7 +254,7 @@ router.get('/payment-methods', async (req, res) => {
 
 // 5. POST /api/orders (Buat pesanan baru)
 router.post('/orders', async (req, res) => {
-  const { variant_id, payment_method_id, target_account, target_zone, contact } = req.body;
+  const { variant_id, payment_method_id, target_account, target_zone, contact, user_id } = req.body;
 
   if (!variant_id || !payment_method_id || !target_account) {
     return res.status(400).json({ success: false, message: 'Harap lengkapi semua field pesanan' });
@@ -262,7 +262,21 @@ router.post('/orders', async (req, res) => {
 
   const invoiceId = `TRX-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
 
+  // Resolusi user_id pemilik transaksi
+  let resolvedUserId = user_id || null;
+  const authEmail = (req.headers['x-user-email'] || '').trim().toLowerCase();
+  const authUserId = req.headers['x-user-id'];
+  if (authUserId) resolvedUserId = authUserId;
+
   try {
+    if (!resolvedUserId && (authEmail || (contact && contact.includes('@')))) {
+      const emailToCheck = authEmail || contact.trim().toLowerCase();
+      try {
+        const [uRows] = await pool.query('SELECT id FROM users WHERE LOWER(email) = ? LIMIT 1', [emailToCheck]);
+        if (uRows.length > 0) resolvedUserId = uRows[0].id;
+      } catch (e) {}
+    }
+
     // Ambil data varian & harga dari MySQL
     const [variants] = await pool.query('SELECT * FROM product_variants WHERE id = ?', [variant_id]);
     const [payments] = await pool.query('SELECT * FROM payment_methods WHERE id = ?', [payment_method_id]);
@@ -288,12 +302,12 @@ router.post('/orders', async (req, res) => {
 
     await pool.query(`
       INSERT INTO transactions (
-        id, variant_id, payment_method_id, target_account, target_zone,
+        id, user_id, variant_id, payment_method_id, target_account, target_zone,
         contact_email_or_phone, base_price, fee_amount, total_amount,
         payment_status, fulfillment_status, payment_reference
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', 'pending', ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', 'pending', ?)
     `, [
-      invoiceId, variant_id, payment_method_id, target_account, target_zone || null,
+      invoiceId, resolvedUserId, variant_id, payment_method_id, target_account, target_zone || null,
       contact || target_account, basePrice, feeTotal, totalAmount, paymentRef
     ]);
 
@@ -302,6 +316,7 @@ router.post('/orders', async (req, res) => {
       message: 'Pesanan berhasil dibuat',
       data: {
         invoice_id: invoiceId,
+        user_id: resolvedUserId,
         total_amount: totalAmount,
         payment_method: payment.name,
         payment_reference: paymentRef,
@@ -354,31 +369,83 @@ router.post('/orders', async (req, res) => {
   }
 });
 
-// 6a. GET /api/orders?contact=08123... (Cek transaksi lewat WhatsApp/email)
+// 6a. GET /api/orders
+// ATURAN 1: User hanya bisa melihat data akun user sendiri
+// ATURAN 2: Admin dapat melihat semua data transaksi user
 router.get('/orders', async (req, res) => {
-  const contact = String(req.query.contact || '').trim();
-  if (contact.length < 5) {
-    return res.status(400).json({ success: false, message: 'Masukkan nomor WhatsApp atau email yang valid' });
+  const role = req.headers['x-user-role'];
+  const userEmail = (req.headers['x-user-email'] || '').trim().toLowerCase();
+  const userId = req.headers['x-user-id'];
+  const contactQuery = String(req.query.contact || '').trim();
+
+  const isAdmin = role === 'admin' || userEmail === 'mari@admin.com';
+
+  // ATURAN 2: Jika Admin -> Dapat melihat semua data transaksi user
+  if (isAdmin) {
+    try {
+      let sql = `
+        SELECT t.id, t.user_id, t.payment_status, t.fulfillment_status, t.total_amount,
+               t.target_account, t.target_zone, t.contact_email_or_phone, t.created_at, t.paid_at,
+               u.name AS user_name, u.email AS user_email,
+               v.name AS variant_name, p.name AS product_name, pm.name AS payment_method_name
+        FROM transactions t
+        LEFT JOIN users u ON t.user_id = u.id
+        JOIN product_variants v ON t.variant_id = v.id
+        JOIN products p ON v.product_id = p.id
+        JOIN payment_methods pm ON t.payment_method_id = pm.id
+      `;
+      const params = [];
+      if (contactQuery) {
+        sql += ` WHERE (t.contact_email_or_phone LIKE ? OR t.id LIKE ? OR u.name LIKE ? OR u.email LIKE ?)`;
+        params.push(`%${contactQuery}%`, `%${contactQuery}%`, `%${contactQuery}%`, `%${contactQuery}%`);
+      }
+      sql += ` ORDER BY t.created_at DESC LIMIT 100`;
+      const [rows] = await pool.query(sql, params);
+      return res.json({ success: true, source: 'mysql', data: rows, is_admin: true });
+    } catch (err) {
+      const list = [...memoryTransactions.values()].reverse();
+      return res.json({ success: true, source: 'mock_fallback', data: list, is_admin: true });
+    }
   }
+
+  // ATURAN 1: User Biasa -> HANYA bisa melihat data transaksi akun sendiri
+  const targetEmail = userEmail || (contactQuery.includes('@') ? contactQuery.toLowerCase() : null);
+  const targetPhone = contactQuery && !contactQuery.includes('@') ? contactQuery : null;
+
+  if (!targetEmail && !targetPhone && !userId) {
+    return res.status(400).json({ success: false, message: 'Silakan masuk ke akun atau masukkan kontak pemesanan' });
+  }
+
   try {
-    // Kredensial (akun/voucher) SENGAJA tidak ikut di daftar; hanya tampil di halaman invoice.
-    const [rows] = await pool.query(`
-      SELECT t.id, t.payment_status, t.fulfillment_status, t.total_amount, t.created_at,
-             v.name AS variant_name, p.name AS product_name
+    let sql = `
+      SELECT t.id, t.user_id, t.payment_status, t.fulfillment_status, t.total_amount,
+             t.target_account, t.target_zone, t.contact_email_or_phone, t.created_at,
+             v.name AS variant_name, p.name AS product_name, pm.name AS payment_method_name
       FROM transactions t
       JOIN product_variants v ON t.variant_id = v.id
       JOIN products p ON v.product_id = p.id
-      WHERE t.contact_email_or_phone = ?
+      JOIN payment_methods pm ON t.payment_method_id = pm.id
+      WHERE (
+        (? IS NOT NULL AND t.user_id = ?)
+        OR (? IS NOT NULL AND LOWER(t.contact_email_or_phone) = ?)
+        OR (? IS NOT NULL AND t.contact_email_or_phone = ?)
+      )
       ORDER BY t.created_at DESC
-      LIMIT 20
-    `, [contact]);
-    return res.json({ success: true, source: 'mysql', data: rows });
+      LIMIT 50
+    `;
+    const [rows] = await pool.query(sql, [
+      userId || null, userId || '',
+      targetEmail || null, targetEmail || '',
+      targetPhone || null, targetPhone || ''
+    ]);
+    return res.json({ success: true, source: 'mysql', data: rows, is_admin: false });
   } catch (err) {
     const list = [...memoryTransactions.values()]
-      .filter(o => o.contact_email_or_phone === contact)
-      .reverse()
-      .map(({ credentials, ...rest }) => rest);
-    return res.json({ success: true, source: 'mock_fallback', data: list });
+      .filter(o => (targetEmail && (o.contact_email_or_phone || '').toLowerCase() === targetEmail) ||
+                   (targetPhone && o.contact_email_or_phone === targetPhone) ||
+                   (userId && o.user_id === userId))
+      .reverse();
+    return res.json({ success: true, source: 'mock_fallback', data: list, is_admin: false });
   }
 });
 
@@ -636,6 +703,33 @@ router.delete('/admin/variants/:id', requireAdmin, async (req, res) => {
 });
 
 // --- KREDENSIAL CRUD (STOK AKUN/VOUCHER) ---
+// --- ADMIN TRANSAKSI (LIHAT SEMUA DATA TRANSAKSI USER) ---
+router.get('/admin/transactions', requireAdmin, async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT t.id, t.user_id, t.variant_id, t.payment_method_id,
+             t.target_account, t.target_zone, t.contact_email_or_phone,
+             t.base_price, t.fee_amount, t.total_amount,
+             t.payment_status, t.fulfillment_status, t.payment_reference,
+             t.paid_at, t.created_at,
+             u.name AS user_name, u.email AS user_email,
+             v.name AS variant_name, p.name AS product_name,
+             pm.name AS payment_method_name, pm.type AS payment_type
+      FROM transactions t
+      LEFT JOIN users u ON t.user_id = u.id
+      JOIN product_variants v ON t.variant_id = v.id
+      JOIN products p ON v.product_id = p.id
+      JOIN payment_methods pm ON t.payment_method_id = pm.id
+      ORDER BY t.created_at DESC
+      LIMIT 100
+    `);
+    return res.json({ success: true, source: 'mysql', data: rows });
+  } catch (err) {
+    const list = [...memoryTransactions.values()].reverse();
+    return res.json({ success: true, source: 'mock_fallback', data: list });
+  }
+});
+
 router.get('/admin/credentials', requireAdmin, async (req, res) => {
   const { variant_id } = req.query;
   try {

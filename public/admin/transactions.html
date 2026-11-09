@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin | Data Semua Transaksi User</title>
+  <meta name="description" content="Rekapitulasi seluruh transaksi user Mari Shop.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/brutal-components.css">
+  <link rel="stylesheet" href="../assets/css/layout.css">
+  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="/assets/css/enhance.css">
+  <script defer src="../assets/js/main.js"></script>
+  <script defer src="../assets/js/copy-clipboard.js"></script>
+  <script defer src="../assets/js/auth.js"></script>
+  <script defer src="../assets/js/admin.js"></script>
+  <!-- Alpine.js dilayani lokal oleh server (npm install). Harus paling akhir. -->
+  <script defer src="/vendor/alpine/cdn.min.js"></script>
+</head>
+<body x-data="adminTransactions()" x-init="init()">
+  <header class="admin-bar">
+    <div class="container nav-wrapper">
+      <a href="index.html" class="logo"><span class="logo-mark">ADMIN</span><span>Mari Shop</span></a>
+      <nav class="admin-nav" aria-label="Menu admin">
+        <template x-if="isAdmin">
+          <div style="display:inline-flex; align-items:center; gap:8px;">
+            <a href="index.html" class="btn btn-sm btn-secondary"><img class="ico" src="/assets/img/icons/bag.svg" alt="" aria-hidden="true"> Produk &amp; Varian</a>
+            <a href="credentials.html" class="btn btn-sm btn-secondary"><img class="ico" src="/assets/img/icons/key.svg" alt="" aria-hidden="true"> Stok Kredensial</a>
+            <a href="transactions.html" class="btn btn-sm btn-primary"><img class="ico" src="/assets/img/icons/receipt.svg" alt="" aria-hidden="true"> Transaksi User</a>
+            <span class="badge badge-yellow" style="font-size:12px; font-weight:800; padding:4px 10px;">
+              <span x-text="user ? user.name : 'Admin'"></span>
+            </span>
+            <button type="button" class="btn btn-sm btn-danger" @click="logout()" style="padding:6px 12px; font-size:12px;">Keluar</button>
+          </div>
+        </template>
+        <a href="../index.html" class="btn btn-sm btn-secondary">← Ke Toko</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container page-main">
+    <!-- ========================================== -->
+    <!-- ACCESS DENIED / LOGIN ADMIN CARD (JIKA BUKAN ADMIN) -->
+    <!-- ========================================== -->
+    <div class="brutal-card admin-auth-card" x-show="!isAdmin" x-cloak style="max-width:520px; margin:40px auto; padding:32px 26px; border-width:3px; box-shadow:4px 4px 0 #0B2A66; background:#FFF;">
+      <div style="text-align:center; margin-bottom:22px;">
+        <div style="display:inline-flex; align-items:center; justify-content:center; width:68px; height:68px; border-radius:50%; background:#FFF0F6; border:3px solid #0B2A66; margin-bottom:14px; box-shadow:3px 3px 0 #0B2A66;">
+          <img class="ico" src="/assets/img/icons/shield.svg" alt="" style="width:36px; height:36px;">
+        </div>
+        <h1 style="font-family:var(--font-family-heading); font-size:24px; font-weight:800; color:#0B2A66; margin-bottom:8px;">Area Terbatas: Khusus Admin</h1>
+        <p style="font-size:13.5px; font-weight:600; color:var(--text-muted); line-height:1.45;">Halaman rekapitulasi semua data transaksi pelanggan hanya dapat diakses oleh Administrator Mari Shop.</p>
+      </div>
+
+      <!-- Kondisi 1: Sedang login tapi sebagai customer biasa -->
+      <template x-if="user && user.role !== 'admin'">
+        <div style="background:#FFF9DB; border:2px solid #0B2A66; border-radius:12px; padding:16px; margin-bottom:20px; box-shadow:2px 2px 0 #0B2A66;">
+          <div style="font-size:13px; font-weight:800; color:#C92A2A; margin-bottom:6px;">⚠️ Hak Akses Tidak Memadai</div>
+          <div style="font-size:13px; color:var(--text-main); line-height:1.45;">
+            Anda saat ini masuk sebagai <strong x-text=\"user.name\"></strong> (<span x-text="user.email"></span>) dengan status akun <strong>Customer</strong>. Sesuai aturan, customer hanya dapat melihat transaksinya sendiri.
+          </div>
+          <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-sm btn-primary" @click="switchToAdmin()">Ganti ke Akun Admin</button>
+            <a href="../index.html" class="btn btn-sm btn-secondary">← Kembali ke Toko</a>
+          </div>
+        </div>
+      </template>
+
+      <!-- Kondisi 2: Belum login atau sedang ganti akun -->
+      <template x-if="!user || user.role !== 'admin'">
+        <form @submit.prevent="submitAdminLogin()" style="display:grid; gap:14px;">
+          <div x-show="loginError" style="background:#FFE3E3; border:2px solid #C92A2A; border-radius:8px; padding:10px 14px; font-size:13px; font-weight:700; color:#C92A2A;" x-text="loginError"></div>
+
+          <div>
+            <label for="adminEmail" style="display:block; font-size:13px; font-weight:800; margin-bottom:6px; color:#0B2A66;">Email Administrator</label>
+            <input type="email" id="adminEmail" class="brutal-input" style="width:100%;" x-model="adminEmail" placeholder="mari@admin.com" required>
+          </div>
+
+          <div>
+            <label for="adminPass" style="display:block; font-size:13px; font-weight:800; margin-bottom:6px; color:#0B2A66;">Kata Sandi</label>
+            <input type="password" id="adminPass" class="brutal-input" style="width:100%;" x-model="adminPass" placeholder="••••••••" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px; margin-top:4px;" :disabled="loginLoading">
+            <span x-show="!loginLoading">Masuk ke Panel Admin →</span>
+            <span x-show="loginLoading">Memverifikasi Hak Akses...</span>
+          </button>
+
+          <div style="border-top:1.5px dashed #D0D7DE; margin:8px 0;"></div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <button type="button" class="btn btn-sm btn-secondary" style="background:#F7BE00; color:#0B2A66;" @click="quickAdminLogin()">
+              ⚡ Masuk Cepat: Mari (Admin)
+            </button>
+            <a href="../index.html" class="btn btn-sm btn-secondary">← Ke Toko</a>
+          </div>
+        </form>
+      </template>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- KONTEN UTAMA ADMIN (SEMUA DATA TRANSAKSI USER) -->
+    <!-- ========================================== -->
+    <div x-show="isAdmin" x-cloak>
+      <div class="demo-banner" style="background:#EBFEEA; border-color:#2B8A3E;">
+        <img class="ico" src="/assets/img/icons/shield.svg" alt="" aria-hidden="true">
+        <strong>Aturan 2 Aktif (Hak Akses Admin):</strong> Menampilkan data seluruh transaksi pelanggan dari database TiDB Cloud.
+      </div>
+
+      <!-- Bento Stats Transaksi -->
+      <div class="bento-stats" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); margin-top:18px;">
+        <div class="stat-box">
+          <div class="stat-val" x-text="stats.total"></div>
+          <div class="stat-lbl">Total Transaksi</div>
+        </div>
+        <div class="stat-box" style="border-color:#2B8A3E;">
+          <div class="stat-val" style="color:#2B8A3E;" x-text="stats.paid"></div>
+          <div class="stat-lbl">Transaksi Lunas</div>
+        </div>
+        <div class="stat-box" style="border-color:#F59F00;">
+          <div class="stat-val" style="color:#F59F00;" x-text="stats.unpaid"></div>
+          <div class="stat-lbl">Menunggu Bayar</div>
+        </div>
+        <div class="stat-box" style="border-color:#1864AB;">
+          <div class="stat-val" style="font-size:18px; color:#1864AB;" x-text="rp(stats.revenue)"></div>
+          <div class="stat-lbl">Total Omset Lunas</div>
+        </div>
+      </div>
+
+      <!-- Filter & Search Bar -->
+      <div class="brutal-card" style="margin-top:20px; padding:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div class="seg" role="tablist">
+            <button type="button" role="tab" :class="{ 'active': statusFilter === 'all' }" @click="statusFilter = 'all'">Semua</button>
+            <button type="button" role="tab" :class="{ 'active': statusFilter === 'paid' }" @click="statusFilter = 'paid'">Lunas</button>
+            <button type="button" role="tab" :class="{ 'active': statusFilter === 'unpaid' }" @click="statusFilter = 'unpaid'">Menunggu</button>
+          </div>
+
+          <div style="display:flex; gap:10px; flex:1; max-width:480px; min-width:240px;">
+            <input type="text" class="brutal-input" style="flex:1;" x-model="searchQuery" placeholder="Cari ID invoice, nama akun, email, HP, atau produk...">
+            <button type="button" class="btn btn-secondary btn-sm" @click="loadData()" title="Muat Ulang Data">⟳ Segarkan</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="skeleton" x-show="loading" style="margin-top:16px;"></div>
+
+      <div class="brutal-card empty-state" x-show="!loading && filteredTransactions.length === 0" style="margin-top:16px;" x-cloak>
+        <img class="empty-ico" src="/assets/img/icons/receipt.svg" alt="" aria-hidden="true">
+        <h2 class="step-title">Tidak ada transaksi ditemukan</h2>
+        <p class="section-sub">Belum ada transaksi yang sesuai dengan filter pencarian Anda.</p>
+      </div>
+
+      <!-- Tabel Semua Transaksi User -->
+      <div class="table-wrap" x-show="!loading && filteredTransactions.length > 0" style="margin-top:16px;" x-cloak>
+        <table class="brutal-table">
+          <thead>
+            <tr>
+              <th>Invoice &amp; Tanggal</th>
+              <th>Akun Pembeli</th>
+              <th>Produk &amp; Varian</th>
+              <th>Target &amp; Kontak</th>
+              <th>Metode &amp; Total</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="t in filteredTransactions" :key="t.id">
+              <tr :style="t.payment_status === 'paid' ? 'background:#F8FFF9;' : ''">
+                <td>
+                  <strong class="text-mono" x-text="t.id"></strong>
+                  <div class="text-muted" style="font-size:11px;" x-text="new Date(t.created_at).toLocaleString('id-ID')"></div>
+                </td>
+                <td>
+                  <template x-if="t.user_id">
+                    <div>
+                      <span class="badge badge-green" style="font-size:10px; margin-bottom:2px;">User Terdaftar</span>
+                      <div style="font-weight:700;" x-text="t.user_name || 'User'"></div>
+                      <div class="text-muted" style="font-size:11px;" x-text="t.user_email"></div>
+                    </div>
+                  </template>
+                  <template x-if="!t.user_id">
+                    <div>
+                      <span class="badge badge-yellow" style="font-size:10px; margin-bottom:2px;">Guest / Tamu</span>
+                      <div class="text-muted" style="font-size:11px;">Tanpa Akun</div>
+                    </div>
+                  </template>
+                </td>
+                <td>
+                  <strong x-text="t.product_name"></strong>
+                  <div class="text-muted text-mono" style="font-size:11px;" x-text="t.variant_name"></div>
+                </td>
+                <td>
+                  <div class="text-mono" style="font-weight:700;" x-text="t.target_account + (t.target_zone ? ' (' + t.target_zone + ')' : '')"></div>
+                  <div class="text-muted" style="font-size:11px;" x-text="t.contact_email_or_phone"></div>
+                </td>
+                <td>
+                  <div class="text-mono" style="font-weight:800; font-size:14px;" x-text="rp(t.total_amount)"></div>
+                  <div class="text-muted" style="font-size:11px;" x-text="t.payment_method_name"></div>
+                </td>
+                <td>
+                  <span class="badge" :class="meta(t).cls" style="margin-bottom:4px;">
+                    <img class="ico" :src="'/assets/img/icons/' + meta(t).icon + '.svg'" alt="" aria-hidden="true">
+                    <span x-text="meta(t).label"></span>
+                  </span>
+                  <div style="font-size:11px; font-weight:700;" :style="t.fulfillment_status === 'success' ? 'color:#2B8A3E;' : 'color:#E67700;'" x-text="'Kirim: ' + t.fulfillment_status"></div>
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <a :href="'../invoice.html?id=' + encodeURIComponent(t.id)" target="_blank" class="btn btn-secondary btn-sm">Lihat Invoice ↗</a>
+                    <template x-if="t.payment_status === 'unpaid'">
+                      <button type="button" class="btn btn-sm btn-primary" style="background:var(--accent-pink); font-size:11px;" @click="simulatePay(t)">Set Lunas</button>
+                    </template>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
